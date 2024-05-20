@@ -17,7 +17,7 @@ fi
 # Source Zinit
 source "$ZINIT_HOME/zinit.zsh"
 
-# Install zinit plugins
+# Install zsh plugins
 
 ## Installing Powerlevel10k prompt
 zinit ice depth=1; zinit light romkatv/powerlevel10k
@@ -26,14 +26,36 @@ zinit ice depth=1; zinit light romkatv/powerlevel10k
 # source the powerlevel10k config
 [[ ! -f ~/.p10k.zsh ]] || source ~/.p10k.zsh
 
-## Installing zsh-syntax-highlighting
-zinit ice depth=1; zinit light zsh-users/zsh-syntax-highlighting
-## Installing zsh-completions
-zinit ice depth=1; zinit light zsh-users/zsh-completions
+zinit ice depth=1; zinit light zsh-users/zsh-syntax-highlighting      ## Installing zsh-syntax-highlighting
+zinit ice depth=1; zinit light zsh-users/zsh-completions              ## Installing zsh-completions
+zinit ice depth=1; zinit light zsh-users/zsh-autosuggestions          ## Installing zsh-autosuggestions
 
-# Load conpletions
+
+# Load completions
 autoload -U compinit && compinit
 
+# Key bindings, setting to emacs mode
+# ^a moves to beginning of line
+# ^e moves to end of line
+# ^w deletes word before cursor
+# ^f moves forward one character
+# ^b moves backward one character
+bindkey -e
+bindkey '^p' history-search-backward
+bindkey '^n' history-search-forward
+
+# History
+HISTSIZE=5000
+HISTFILE=~/.zsh_history
+SAVEHIST=$HISTSIZE
+HISTDUP=erase
+setopt appendhistory
+setopt sharehistory
+setopt hist_ignore_space
+setopt hist_ignore_all_dups
+setopt hist_save_no_dups
+setopt hist_ignore_dups
+setopt hist_find_no_dups
 #
 eval "$(/opt/homebrew/bin/brew shellenv)"
 
@@ -41,6 +63,7 @@ eval "$(/opt/homebrew/bin/brew shellenv)"
 alias c=clear
 alias grep='grep --color=auto'
 alias ls="ls --color=auto"
+alias ll="ls -l"
 alias tom_start="brew services start tomcat"
 alias tom_stop="brew services stop tomcat"
 
@@ -84,16 +107,6 @@ java17
 PATH="/opt/homebrew/opt/node@20/bin:$PATH"
 export LDFLAGS="-L/opt/homebrew/opt/node@20/lib"
 export CPPFLAGS="-I/opt/homebrew/opt/node@20/include"
-
-
-# zsh-z
-# https://github.com/agkozak/zsh-z.git
-# source ~/extensions/zsh-z/zsh-z.plugin.zsh
-# autoload -U compinit; compinit
-# zstyle ':completion:*' menu select
-
-# autosuggestions
-source $(brew --prefix)/share/zsh-autosuggestions/zsh-autosuggestions.zsh
 
 # ---- FZF -----
 # Set up fzf key bindings and fuzzy completion
