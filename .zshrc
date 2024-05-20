@@ -44,6 +44,10 @@ bindkey -e
 bindkey '^p' history-search-backward
 bindkey '^n' history-search-forward
 
+
+# Completion styling, enable case insensitive matching
+zstyle ':completion:*' matcher-list 'm:{a-zA-Z}={A-Za-z}'
+
 # History
 HISTSIZE=5000
 HISTFILE=~/.zsh_history
