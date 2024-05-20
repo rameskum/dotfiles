@@ -22,6 +22,12 @@ brew install git
 brew install stow
 ```
 
+### Alacritty
+
+```bash
+brew install --cask alacritty
+```
+
 ## Installation
 
 First, checkout the dotfiles repo in your $HOME directory using git.
