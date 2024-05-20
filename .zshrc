@@ -23,7 +23,11 @@ source "$ZINIT_HOME/zinit.zsh"
 zinit ice depth=1; zinit light romkatv/powerlevel10k
 
 # To customize prompt, run `p10k configure` or edit ~/.p10k.zsh.
+# source the powerlevel10k config
 [[ ! -f ~/.p10k.zsh ]] || source ~/.p10k.zsh
+
+## Installing zsh-syntax-highlighting
+zinit ice depth=1; zinit light zsh-users/zsh-syntax-highlighting
 
 #
 eval "$(/opt/homebrew/bin/brew shellenv)"
@@ -42,12 +46,7 @@ export PATH="/opt/homebrew/sbin:$PATH"
 
 # VARIABLES
 export EDITOR="vim"
-export PYENV_ROOT="$HOME/.pyenv"
 export PATH="/opt/homebrew/bin:$PATH"
-export PATH="~/Oracle/instantclient10_1:$PATH"
-export PATH="$PYENV_ROOT/bin:$PATH"
-export PATH="$PATH:/Users/rameskum/Development/flutter/bin"
-export PATH="$PATH":"$HOME/.pub-cache/bin"
 
 # RUBY
 if [ -d "/opt/homebrew/opt/ruby/bin" ]; then
