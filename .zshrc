@@ -28,6 +28,11 @@ zinit ice depth=1; zinit light romkatv/powerlevel10k
 
 ## Installing zsh-syntax-highlighting
 zinit ice depth=1; zinit light zsh-users/zsh-syntax-highlighting
+## Installing zsh-completions
+zinit ice depth=1; zinit light zsh-users/zsh-completions
+
+# Load conpletions
+autoload -U compinit && compinit
 
 #
 eval "$(/opt/homebrew/bin/brew shellenv)"
@@ -35,10 +40,7 @@ eval "$(/opt/homebrew/bin/brew shellenv)"
 # aliases
 alias c=clear
 alias grep='grep --color=auto'
-# alias python=/opt/homebrew/bin/python3
-# alias py=python
-alias ls="lsd"
-alias ls="ls -h --color=auto"
+alias ls="ls --color=auto"
 alias tom_start="brew services start tomcat"
 alias tom_stop="brew services stop tomcat"
 
