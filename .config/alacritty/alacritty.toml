@@ -12,3 +12,7 @@ option_as_alt = "Both"
 normal.family = "MesloLGS Nerd Font Mono"
 
 size = 19
+
+[cursor.style]
+blinking = "On"
+shape = "Block"
