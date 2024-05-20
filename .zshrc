@@ -47,6 +47,8 @@ bindkey '^n' history-search-forward
 
 # Completion styling, enable case insensitive matching
 zstyle ':completion:*' matcher-list 'm:{a-zA-Z}={A-Za-z}'
+# enable color to auto suggest completions
+zstyle ':completion:*' list-colors "${(s.:.)LS_COLORS}"
 
 # History
 HISTSIZE=5000
@@ -66,7 +68,7 @@ eval "$(/opt/homebrew/bin/brew shellenv)"
 # aliases
 alias c=clear
 alias grep='grep --color=auto'
-alias ls="ls --color=auto"
+alias ls="ls --color"
 alias ll="ls -l"
 alias tom_start="brew services start tomcat"
 alias tom_stop="brew services stop tomcat"
