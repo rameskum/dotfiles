@@ -29,7 +29,7 @@ zinit ice depth=1; zinit light romkatv/powerlevel10k
 zinit ice depth=1; zinit light zsh-users/zsh-syntax-highlighting      ## Installing zsh-syntax-highlighting
 zinit ice depth=1; zinit light zsh-users/zsh-completions              ## Installing zsh-completions
 zinit ice depth=1; zinit light zsh-users/zsh-autosuggestions          ## Installing zsh-autosuggestions
-
+zinit ice depth=1; zinit light Aloxaf/fzf-tab                         ## Installing fzf-tab
 
 # Load completions
 autoload -U compinit && compinit
@@ -49,6 +49,10 @@ bindkey '^n' history-search-forward
 zstyle ':completion:*' matcher-list 'm:{a-zA-Z}={A-Za-z}'
 # enable color to auto suggest completions
 zstyle ':completion:*' list-colors "${(s.:.)LS_COLORS}"
+# disable default completion
+zstyle ':completion:*' menu no
+# fzf-preview
+zstyle ':fzf-tab:complete:cd:*' fzf-preview 'ls --color $realpath'
 
 # History
 HISTSIZE=5000
