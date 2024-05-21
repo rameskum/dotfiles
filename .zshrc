@@ -62,8 +62,14 @@ setopt hist_ignore_all_dups
 setopt hist_save_no_dups
 setopt hist_ignore_dups
 setopt hist_find_no_dups
-#
+
+# export brew shellenv
 eval "$(/opt/homebrew/bin/brew shellenv)"
+
+
+# ---- FZF -----
+# Set up fzf key bindings and fuzzy completion
+eval "$(fzf --zsh)"
 
 # aliases
 alias c=clear
@@ -114,39 +120,7 @@ PATH="/opt/homebrew/opt/node@20/bin:$PATH"
 export LDFLAGS="-L/opt/homebrew/opt/node@20/lib"
 export CPPFLAGS="-I/opt/homebrew/opt/node@20/include"
 
-# ---- FZF -----
-# Set up fzf key bindings and fuzzy completion
-eval "$(fzf --zsh)"
-
-# -- Use fd instead of fzf --
-
-export FZF_DEFAULT_COMMAND="fd --hidden --strip-cwd-prefix --exclude .git"
-export FZF_CTRL_T_COMMAND="$FZF_DEFAULT_COMMAND"
-export FZF_ALT_C_COMMAND="fd --type=d --hidden --strip-cwd-prefix --exclude .git"
-
-# Use fd (https://github.com/sharkdp/fd) for listing path candidates.
-# - The first argument to the function ($1) is the base path to start traversal
-# - See the source code (completion.{bash,zsh}) for the details.
-_fzf_compgen_path() {
-  fd --hidden --exclude .git . "$1"
-}
-
-# Use fd to generate the list for directory completion
-_fzf_compgen_dir() {
-  fd --type=d --hidden --exclude .git . "$1"
-}
-
-# --- setup fzf theme ---
-export FZF_DEFAULT_OPTS=$FZF_DEFAULT_OPTS'
-  --color=fg:#d0d0d0,fg+:#d0d0d0,bg:#121212,bg+:#262626
-  --color=hl:#5f87af,hl+:#5fd7ff,info:#afaf87,marker:#87ff00
-  --color=prompt:#d7005f,spinner:#af5fff,pointer:#af5fff,header:#87afaf
-  --color=border:#262626,label:#aeaeae,query:#d9d9d9
-  --border="rounded" --border-label="" --preview-window="border-rounded" --prompt="> "
-  --marker=">" --pointer="◆" --separator="─" --scrollbar="│"'
-
 # ----- Bat (better cat) -----
-
 export BAT_THEME=tokyonight_night
 
 # bun completions
