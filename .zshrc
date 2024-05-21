@@ -20,19 +20,21 @@ source "$ZINIT_HOME/zinit.zsh"
 # Install zsh plugins
 
 ## Installing Powerlevel10k prompt
-zinit ice depth=1; zinit light romkatv/powerlevel10k
-
-# To customize prompt, run `p10k configure` or edit ~/.p10k.zsh.
-# source the powerlevel10k config
-[[ ! -f ~/.p10k.zsh ]] || source ~/.p10k.zsh
-
+zinit ice depth=1; zinit light romkatv/powerlevel10k                  ## Installing Powerlevel10k
 zinit ice depth=1; zinit light zsh-users/zsh-syntax-highlighting      ## Installing zsh-syntax-highlighting
 zinit ice depth=1; zinit light zsh-users/zsh-completions              ## Installing zsh-completions
 zinit ice depth=1; zinit light zsh-users/zsh-autosuggestions          ## Installing zsh-autosuggestions
 zinit ice depth=1; zinit light Aloxaf/fzf-tab                         ## Installing fzf-tab
 
+# Installing Ad-In Snippets
+zinit snippet OMZP::git                                               ## Installing OMZP::git  https://github.com/ohmyzsh/ohmyzsh/tree/master/plugins/git
+
 # Load completions
 autoload -U compinit && compinit
+
+# To customize prompt, run `p10k configure` or edit ~/.p10k.zsh.
+# source the powerlevel10k config
+[[ ! -f ~/.p10k.zsh ]] || source ~/.p10k.zsh
 
 # Key bindings, setting to emacs mode
 # ^a moves to beginning of line
