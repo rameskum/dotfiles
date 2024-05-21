@@ -85,13 +85,14 @@ alias c=clear
 alias grep='grep --color=auto'
 alias ls="ls --color"
 alias ll="ls -l"
-alias tom_start="brew services start tomcat"
-alias tom_stop="brew services stop tomcat"
-
-export PATH="/opt/homebrew/sbin:$PATH"
+alias ..="cd .."
+alias ...="cd ../.."
+alias ....="cd ../../.."
+alias vi="nvim"
 
 # VARIABLES
 export EDITOR="vim"
+export PATH="/opt/homebrew/sbin:$PATH"
 export PATH="/opt/homebrew/bin:$PATH"
 
 # RUBY
