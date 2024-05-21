@@ -32,6 +32,9 @@ zinit snippet OMZP::git                                               ## Install
 # Load completions
 autoload -U compinit && compinit
 
+# Replay cashed completions
+zinit cdreplay -q
+
 # To customize prompt, run `p10k configure` or edit ~/.p10k.zsh.
 # source the powerlevel10k config
 [[ ! -f ~/.p10k.zsh ]] || source ~/.p10k.zsh
