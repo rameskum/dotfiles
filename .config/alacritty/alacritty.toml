@@ -1,9 +1,12 @@
 [window]
-padding.x = 10
-padding.y = 10
+padding.x = 15
+padding.y = 15
+dimensions = { columns = 90, lines = 25 }
+decorations = "Full"
 
+dynamic_title = true
 
-opacity = 0.8
+opacity = 0.9
 blur = true
 
 option_as_alt = "Both"

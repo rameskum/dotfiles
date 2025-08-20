@@ -109,33 +109,23 @@ fi
 alias python='python3'
 
 # SETUP JAVA
-export JAVA_21_HOME=$(/usr/libexec/java_home -v21)
-export JAVA_17_HOME=$(/usr/libexec/java_home -v17)
-export JAVA_11_HOME=$(/usr/libexec/java_home -v11)
-export JAVA_8_HOME=$(/usr/libexec/java_home -v1.8)
-export JAVA_7_HOME=$(/usr/libexec/java_home -v1.7)
+export JAVA_24_HOME=$(/usr/libexec/java_home -v24)
+# export JAVA_21_HOME=$(/usr/libexec/java_home -v21)
+# export JAVA_17_HOME=$(/usr/libexec/java_home -v17)
+# export JAVA_11_HOME=$(/usr/libexec/java_home -v11)
+# export JAVA_8_HOME=$(/usr/libexec/java_home -v1.8)
+# export JAVA_7_HOME=$(/usr/libexec/java_home -v1.7)
 
 # SETUP JAVA ALIASES
-alias java21='export JAVA_HOME=$JAVA_21_HOME'
-alias java17='export JAVA_HOME=$JAVA_17_HOME'
-alias java11='export JAVA_HOME=$JAVA_11_HOME'
-alias java8='export JAVA_HOME=$JAVA_8_HOME'
-alias java7='export JAVA_HOME=$JAVA_7_HOME'
+alias java24='export JAVA_HOME=$JAVA_24_HOME'
+# alias java21='export JAVA_HOME=$JAVA_21_HOME'
+# alias java17='export JAVA_HOME=$JAVA_17_HOME'
+# alias java11='export JAVA_HOME=$JAVA_11_HOME'
+# alias java8='export JAVA_HOME=$JAVA_8_HOME'
+# alias java7='export JAVA_HOME=$JAVA_7_HOME'
 
 # SET DEFAULT JDK
-java17
-
-# node
-PATH="/opt/homebrew/opt/node@20/bin:$PATH"
-export LDFLAGS="-L/opt/homebrew/opt/node@20/lib"
-export CPPFLAGS="-I/opt/homebrew/opt/node@20/include"
+java24
 
 # ----- Bat (better cat) -----
 export BAT_THEME=tokyonight_night
-
-# bun completions
-[ -s "/Users/rameskum/.bun/_bun" ] && source "/Users/rameskum/.bun/_bun"
-
-# bun
-export BUN_INSTALL="$HOME/.bun"
-export PATH="$BUN_INSTALL/bin:$PATH"
