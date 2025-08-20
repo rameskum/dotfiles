@@ -129,3 +129,5 @@ java24
 
 # ----- Bat (better cat) -----
 export BAT_THEME=tokyonight_night
+
+export GPG_TTY=$(tty)
