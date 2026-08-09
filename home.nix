@@ -8,6 +8,7 @@ in
   home.username = user;
   home.homeDirectory = "/Users/${user}";
   home.stateVersion = "24.11";
+  home.sessionVariables.NVM_DIR = "$HOME/.nvm";
   home.packages = with pkgs; [
     # cli i use constantly
     ripgrep   # fast search
@@ -28,6 +29,8 @@ in
     syntaxHighlighting.enable = true;  # commands turn green when valid
     initContent = ''
       bindkey '^f' autosuggest-accept
+      [ -s "/opt/homebrew/opt/nvm/nvm.sh" ] && . "/opt/homebrew/opt/nvm/nvm.sh"
+      [ -s "/opt/homebrew/opt/nvm/etc/bash_completion.d/nvm" ] && . "/opt/homebrew/opt/nvm/etc/bash_completion.d/nvm"
     '';
     shellAliases = {
       ".." = "cd ..";
@@ -70,4 +73,8 @@ in
     config.lib.file.mkOutOfStoreSymlink "${dotfiles}/home/AGENTS.md";
   home.file.".config/opencode/AGENTS.md".source =
     config.lib.file.mkOutOfStoreSymlink "${dotfiles}/home/AGENTS.md";
+
+  home.activation.ensureNvmDir = config.lib.hm.dag.entryAfter [ "writeBoundary" ] ''
+    mkdir -p "${config.home.homeDirectory}/.nvm"
+  '';
 }

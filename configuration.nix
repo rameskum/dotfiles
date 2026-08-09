@@ -35,9 +35,12 @@
     onActivation.autoUpdate = true;
     onActivation.extraFlags = [ "--force" ];
     brews = [
+      "gh"
       "herdr"
+      "nvm"
     ];
     casks = [
+      "copilot-cli"
       "wezterm"
       "claude-code"
     ];
