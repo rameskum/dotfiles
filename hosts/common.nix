@@ -48,8 +48,10 @@
   # Git Configuration
   programs.git = {
     enable = true;
-    userName = gitName;
-    userEmail = gitEmail;
+    settings = {
+      user.name = gitName;
+      user.email = gitEmail;
+    };
   };
 
   # Zsh Shell Configuration
