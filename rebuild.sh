@@ -1,21 +1,17 @@
 #!/usr/bin/env bash
-# Applies this repo to the machine. Run it after every change that isn't just
-# a symlinked file under home/.
-#   1. Home Manager: packages, apps, zsh, dotfiles, Homebrew formulae
-#   2. system/sync.sh: apt apps, GPU drivers, AppArmor (asks for sudo if needed)
 set -euo pipefail
-
 DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd -P)"
+ln -sfn "$DIR" ~/.dotfiles
 
-# home.nix resolves its mkOutOfStoreSymlink paths through ~/.dotfiles.
-if [ "$DIR" != "$(cd "$HOME/.dotfiles" 2>/dev/null && pwd -P)" ]; then
-  ln -sfn "$DIR" "$HOME/.dotfiles"
+# `nix run ~/.dotfiles` is the home-manager CLI pinned by flake.lock.
+nix run ~/.dotfiles -- switch --flake ~/.dotfiles#ubuntu "$@"
+
+# Nix GUI apps (WezTerm) need /run/opengl-driver to point at the Mesa drivers
+# from this nixpkgs. Home Manager ships the setup script; rerun it whenever
+# the link is missing or a flake update moved the drivers.
+gpu_setup="$(readlink -f ~/.nix-profile/bin/non-nixos-gpu-setup)"
+want="$(awk '$2 == "/run/opengl-driver" { print $NF }' "${gpu_setup%/bin/*}/lib/tmpfiles.d/non-nixos-gpu.conf")"
+if [ "$(readlink /run/opengl-driver || true)" != "$want" ]; then
+  echo "==> Linking GPU drivers for Nix apps (needs sudo)"
+  sudo "$gpu_setup"
 fi
-
-echo "==> Home Manager"
-# Existing dotfiles it would overwrite (e.g. Ubuntu's default ~/.bashrc) are
-# renamed to *.hm-backup instead of aborting the switch.
-nix run "$DIR" -- switch --flake "$DIR#ubuntu" -b hm-backup "$@"
-
-echo "==> System"
-"$DIR/system/sync.sh"

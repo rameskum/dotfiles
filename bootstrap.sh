@@ -11,7 +11,30 @@ if [ "$(id -u)" = 0 ]; then
   exit 1
 fi
 
-echo "==> Step 1: personalize the configured username"
+echo "==> Step 1: apt prerequisites (curl, git, zsh, Homebrew build deps)"
+sudo apt-get update
+# If Nix is already installed it owns /etc/zsh/zshrc; keep that file rather
+# than stopping at dpkg's "configuration file modified" prompt.
+sudo DEBIAN_FRONTEND=noninteractive apt-get install -y \
+  -o Dpkg::Options::=--force-confdef -o Dpkg::Options::=--force-confold \
+  curl git gpg zsh build-essential procps file
+
+echo "==> Step 2: Determinate Nix"
+if command -v nix >/dev/null 2>&1; then
+  echo "    nix already installed, skipping"
+else
+  curl --proto '=https' --tlsv1.2 -sSf -L https://install.determinate.systems/nix \
+    | sh -s -- install --no-confirm
+  # shellcheck disable=SC1091
+  . /nix/var/nix/profiles/default/etc/profile.d/nix-daemon.sh
+fi
+
+echo "==> Step 3: symlink this repo to ~/.dotfiles"
+# home.nix resolves its mkOutOfStoreSymlink paths through ~/.dotfiles, so this
+# has to exist before the first switch or the build will fail to find them.
+ln -sfn "$DIR" ~/.dotfiles
+
+echo "==> Step 4: personalize the configured username"
 REAL_USER="$(whoami)"
 FLAKE_USER="$(sed -nE 's/^[[:space:]]*user = "([^"]+)";.*/\1/p' "$DIR/flake.nix" | head -n1)"
 if [ -z "$FLAKE_USER" ]; then
@@ -29,32 +52,12 @@ elif [ "$FLAKE_USER" != "$REAL_USER" ]; then
     exit 1
   fi
 else
-  echo "    flake.nix already matches \"$REAL_USER\""
+  echo "    flake.nix already matches \"$REAL_USER\", nothing to do."
 fi
 
-echo "==> Step 2: apt prerequisites (curl, git, zsh, Homebrew build deps)"
-sudo apt-get update
-# If Nix is already installed it owns /etc/zsh/zshrc; keep that file rather
-# than stopping at dpkg's "configuration file modified" prompt.
-sudo DEBIAN_FRONTEND=noninteractive apt-get install -y \
-  -o Dpkg::Options::=--force-confdef -o Dpkg::Options::=--force-confold \
-  curl git gpg zsh build-essential procps file
-
-echo "==> Step 3: Determinate Nix"
-if command -v nix >/dev/null 2>&1; then
-  echo "    nix already installed"
-else
-  curl --proto '=https' --tlsv1.2 -sSf -L https://install.determinate.systems/nix \
-    | sh -s -- install --no-confirm
-fi
-if ! command -v nix >/dev/null 2>&1; then
-  # shellcheck disable=SC1091
-  . /nix/var/nix/profiles/default/etc/profile.d/nix-daemon.sh
-fi
-
-echo "==> Step 4: Homebrew"
+echo "==> Step 5: Homebrew"
 if [ -x /home/linuxbrew/.linuxbrew/bin/brew ]; then
-  echo "    brew already installed"
+  echo "    brew already installed, skipping"
 else
   # The installer needs sudo to create /home/linuxbrew; refresh the cached
   # credentials so its non-interactive sudo calls succeed.
@@ -62,16 +65,15 @@ else
   NONINTERACTIVE=1 bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
 fi
 
-echo "==> Step 5: apply the config"
+echo "==> Step 6: first switch"
 "$DIR/rebuild.sh"
 
-echo "==> Step 6: make zsh the login shell"
+echo "==> Step 7: make zsh the login shell"
 ZSH_PATH=/usr/bin/zsh
 if [ "$(getent passwd "$REAL_USER" | cut -d: -f7)" = "$ZSH_PATH" ]; then
   echo "    already using $ZSH_PATH"
 else
   sudo chsh -s "$ZSH_PATH" "$REAL_USER"
-  echo "    login shell set to $ZSH_PATH (takes effect after you log out and back in)"
 fi
 
 echo "==> Done. Log out and back in, then use ./rebuild.sh for future changes."

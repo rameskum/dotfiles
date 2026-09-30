@@ -7,158 +7,149 @@ Modeled on [kunchenguid/dotfiles](https://github.com/kunchenguid/dotfiles) (macO
 
 ## What you get
 
-Running `./rebuild.sh` builds:
+Running the switch builds:
 
-- Nix packages: ripgrep, fd, jq, htop, uv, git, Hack Nerd Font
-- Apps from Nix: Brave, WezTerm
+- Nix packages: git, ripgrep, fd, jq, htop, uv, WezTerm, Hack Nerd Font
 - Homebrew formulae: nvm, wget, gh
-- Shell: zsh as the login shell, with a Starship prompt, autosuggestions, syntax highlighting, history substring search, fzf (`Ctrl+R`, `Ctrl+T`), zoxide (`z`), eza (`ls`, `ll`, `lt`), bat, and aliases
+- Shell: zsh (login shell), aliases, and a Starship prompt, plus autosuggestions, syntax highlighting, history substring search, fzf (`Ctrl+R`, `Ctrl+T`), zoxide (`z`), eza (`ls`, `ll`, `lt`), and bat
 - Terminal: WezTerm config with Catppuccin Mocha and Hack Nerd Font
-- apt apps: 1Password (the one app that can't run properly from Nix, see below)
+
+Anything that can't come from Nix or Homebrew (Brave, 1Password, ...) I install by hand.
 
 ## Prerequisites
 
-- Ubuntu 24.04 (x86_64). Other recent Ubuntu releases should work.
-- A normal user with `sudo` rights.
+- Ubuntu 24.04 on x86_64.
+- A normal user with `sudo` rights, and `git`: `sudo apt-get install -y git`.
 
 ## Fresh-machine setup
 
+Clone anywhere you like:
+
 ```sh
-sudo apt-get install -y git
-git clone https://github.com/rameskum/dotfiles.git ~/.dotfiles
-cd ~/.dotfiles
+git clone https://github.com/rameskum/dotfiles.git ~/github/rameskum/dotfiles
+cd ~/github/rameskum/dotfiles
 ```
 
-Review "Make it yours" below first, especially the Homebrew cleanup warning.
+Before you run it, review "Make it yours" below and read the Homebrew cleanup warning.
 
 ```sh
 ./bootstrap.sh
 ```
 
-`bootstrap.sh` does six things, in order, and is safe to re-run:
+`bootstrap.sh` does seven things, in order:
 
-1. Checks the `user` in `flake.nix` against your Linux username, and offers to fix it if they differ.
-2. Installs apt prerequisites: `curl git gpg zsh build-essential procps file`.
-3. Installs Determinate Nix, if it isn't already installed.
-4. Installs Homebrew to `/home/linuxbrew/.linuxbrew`, if it isn't already installed.
-5. Runs `./rebuild.sh` (below).
-6. Makes `/usr/bin/zsh` your login shell.
+1. Installs the apt prerequisites: `curl git gpg zsh build-essential procps file`.
+   These are the only apt packages this repo installs.
+2. Installs Determinate Nix, if it isn't already installed.
+3. Symlinks this repo to `~/.dotfiles`.
+   This has to happen before the first build, because `home.nix` points at config files through `~/.dotfiles`.
+4. Checks the `user` configured in `flake.nix` against your Linux username, and offers to fix it if they differ.
+5. Installs Homebrew into `/home/linuxbrew/.linuxbrew`, if it isn't already installed.
+6. Runs `./rebuild.sh` for the first switch.
+7. Makes `/usr/bin/zsh` your login shell.
 
-Log out and back in afterwards. That picks up zsh and makes Brave and WezTerm appear in the app launcher.
+Log out and back in afterwards to get zsh and to see WezTerm in the app launcher.
 
 ### Validate without applying
 
 ```sh
 nix flake check
-nix build .#homeConfigurations.ubuntu.activationPackage --dry-run
+nix build ~/.dotfiles#homeConfigurations.ubuntu.activationPackage --dry-run
 ```
 
 ## Daily use
 
-Edit the config, then apply:
+Edit the config files in place, then apply:
 
 ```sh
-./rebuild.sh        # or just `rebuild` from anywhere
+./rebuild.sh        # or `rebuild` from anywhere
 ```
 
-`rebuild.sh` does two things:
-
-1. `home-manager switch`: packages, apps, zsh, dotfiles, and Homebrew formulae.
-   Files it would overwrite, such as Ubuntu's default `~/.bashrc`, are moved to `*.hm-backup`.
-2. `system/sync.sh`: the root-level bits Home Manager can't do on Ubuntu (apt apps, GPU drivers, AppArmor).
-   It asks for sudo only when something needs to change.
+`rebuild.sh` re-points `~/.dotfiles` at this clone and runs `home-manager switch`.
+It then asks for sudo only if the GPU drivers for Nix apps need (re)linking, which happens on first run and after some flake updates.
 
 Nix flakes only see files tracked by git, so `git add` new files before rebuilding.
 
-Updating:
+Update things:
 
 ```sh
-nix flake update && ./rebuild.sh   # newer nixpkgs: Brave, WezTerm, CLI tools
-brew upgrade                       # brew formulae (never upgraded automatically)
-sudo apt update && sudo apt upgrade   # 1Password
+nix flake update && ./rebuild.sh   # newer nixpkgs and home-manager
+brew upgrade                       # formulae are never upgraded automatically
 ```
 
 ## Adding and removing software
 
-Pick the first place that works:
+| Kind | Where | Removed on rebuild when deleted from the list |
+| --- | --- | --- |
+| CLI tools and GUI apps from nixpkgs ([search](https://search.nixos.org/packages)) | `home.packages` in `home.nix` | yes |
+| CLI tools from Homebrew ([search](https://formulae.brew.sh)) | `homebrew.formulae` in `home.nix` | yes |
+| Everything else | install by hand | no, remove by hand |
 
-| Where | For | Add | Remove |
-| --- | --- | --- | --- |
-| `home.packages` in `home.nix` | CLI tools and GUI apps ([search](https://search.nixos.org/packages)) | add a line | delete the line |
-| `homebrew.formulae` in `home.nix` | CLI tools not in nixpkgs, or ones you prefer from brew | add a line | delete the line |
-| `system/apps.sh` | apps that must be installed system-wide (1Password) | add an `app` block | delete the block |
+Homebrew formulae live in `home.nix`:
 
-Then run `./rebuild.sh`. Removal is automatic in all three places:
+```nix
+homebrew = {
+  enable = true;
+  cleanup = true;
+  taps = [ "hashicorp/tap" ];                  # optional third-party taps
+  formulae = [
+    "nvm"
+    "wget"
+    "gh"
+    "hashicorp/tap/terraform"                  # formula from a tap
+  ];
+};
+```
 
-- **Nix**: anything not listed is gone from your profile.
-- **Homebrew**: every formula and tap not listed is uninstalled, **including anything you installed by hand with `brew install`**.
-- **apt**: apps deleted from `system/apps.sh` are purged, along with their repo and signing key. Packages you installed yourself with `apt install` are never touched.
-  Remove those with `sudo apt purge --autoremove <pkg>`.
+Add a line and run `./rebuild.sh` to install.
+Delete the line and run `./rebuild.sh` to uninstall.
+
+**Homebrew casks don't work on Linux.** Every GUI cask ships a macOS `.app`/`.dmg`, and `brew install --cask ...` fails with "This cask requires macOS".
+Use Nix for GUI apps, or install them by hand.
+
+Unfree Nix packages (VS Code, Slack, ...) need `nixpkgs.config.allowUnfree = true;` in `home.nix`.
 
 To try something without installing it: `nix shell nixpkgs#<pkg>`.
 
-Unfree Nix packages (VS Code, Slack, Discord, ...) need `nixpkgs.config.allowUnfree = true;` in `home.nix`.
-Chromium- and Electron-based apps from Nix (Slack, Discord, VS Code, ...) also need an AppArmor profile on Ubuntu 24.04, like `system/apparmor/nix-brave`.
-Copy that file and change the name and the binary path.
-
-To add a brew tap:
-
-```nix
-homebrew.taps = [ "hashicorp/tap" ];
-homebrew.formulae = [ "hashicorp/tap/terraform" ];
-```
-
-## Why not brew casks, and why is 1Password on apt?
-
-- **Homebrew casks are macOS-only.** `brew install --cask wezterm` on Linux fails with "This cask requires macOS". On Ubuntu, brew is for formulae (CLI tools) only.
-- **GUI apps come from Nix**, which plays the role casks play on a Mac.
-  On Ubuntu they need two one-time system tweaks, which `system/sync.sh` handles:
-  - **GPU drivers**: Nix apps can't use Ubuntu's graphics libraries.
-    Home Manager's `targets.genericLinux.gpu` provides `non-nixos-gpu-setup`, which links `/run/opengl-driver` to matching Mesa drivers.
-  - **AppArmor**: Ubuntu 24.04 blocks unprivileged user namespaces, which Chromium's sandbox needs.
-    Ubuntu ships profiles that allow it for `/opt/brave.com/brave/brave`, but not for a path in `/nix/store`.
-    `system/apparmor/nix-brave` is the same profile, pointed at the Nix path.
-- **1Password is the exception.** Its browser integration needs a setgid helper, and unlocking with your system password needs a polkit policy.
-  Neither can be installed from `/nix/store` outside NixOS.
-  The official `.deb` sets both up, and the Brave extension connects to it as usual.
-
 ## Make it yours
 
-- **Username**: `./bootstrap.sh` detects your Linux username and offers to set it, or change the single `user = "rameskum"` line in `flake.nix`.
+This repo is mine.
+If you clone it, review these before you run `bootstrap.sh`:
+
+- **Username**: run `./bootstrap.sh`, which detects your Linux username and offers to set it.
+  Or change the single `user = "rameskum"` line in `flake.nix` yourself.
 - **Git identity**: `gitName` and `gitEmail` in `flake.nix`.
-- **Host label** `"ubuntu"`: in `flake.nix` (`homeConfigurations."ubuntu"`) and in `rebuild.sh` (`#ubuntu`).
-- **CPU architecture**: `system = "x86_64-linux"` in `flake.nix` (`aarch64-linux` for ARM).
+- **Config label** `"ubuntu"`, in two places: `flake.nix` (`homeConfigurations."ubuntu"`) and `rebuild.sh` (`#ubuntu`).
+  It's a config name, not your hostname, so the same config works on any machine.
+- **CPU architecture**: `system = "x86_64-linux"` in `flake.nix` (use `aarch64-linux` for ARM).
 
-**Homebrew cleanup warning:** `homebrew.cleanup = true` in `home.nix` means every rebuild uninstalls any formula not listed in `homebrew.formulae`.
-If you already have Homebrew packages, add the ones you want to keep before your first rebuild.
-`brew bundle cleanup --file ~/.config/homebrew/Brewfile --formula --tap` previews what would be removed.
+**Homebrew cleanup warning:** `home.nix` sets `homebrew.cleanup = true`.
+Every time you switch, Homebrew uninstalls any formula or tap that isn't listed in `homebrew.formulae` / `homebrew.taps`, including anything you installed with `brew install`.
+If you already have Homebrew packages you want to keep, add them to the list first.
+Preview what would be removed with `brew bundle cleanup --file ~/.config/homebrew/Brewfile --formula --tap`.
 
-**Heads-up:** the `cc` and `co` aliases are high-agency shortcuts (`claude --dangerously-skip-permissions`, `codex --full-auto`).
+**Heads-up:** the `cc` and `co` aliases are high-agency shortcuts: `claude --dangerously-skip-permissions` and `codex --full-auto`.
 
 ## Repo tour
 
-- `flake.nix`: the entry point.
-  Wires up nixpkgs and home-manager, holds the `user` and git identity, and declares the `ubuntu` configuration.
-- `home.nix`: user-level config: packages, apps, Homebrew formulae, git, zsh, prompt, and the symlinks below.
-- `modules/homebrew.nix`: implements `homebrew.*`.
+- `flake.nix` - the entry point.
+  Wires up nixpkgs and home-manager, holds `user` and the git identity, and declares the `ubuntu` config.
+- `home.nix` - user-level config: packages, Homebrew formulae, git, zsh, prompt, and the symlinks described below.
+- `modules/homebrew.nix` - implements the `homebrew.*` options.
   It writes `~/.config/homebrew/Brewfile`, then runs `brew bundle install` and `brew bundle cleanup` during the switch.
-- `system/`: root-level setup Home Manager can't do on Ubuntu.
-  - `sync.sh`: run by `rebuild.sh`.
-  - `apps.sh`: the apt app list.
-  - `apparmor/`: AppArmor profiles.
-- `home/`: the actual config files that get symlinked into place.
-- `bootstrap.sh`: first-time setup.
-- `rebuild.sh`: applies the config.
-  Run it every time you change something that isn't a symlinked file.
+- `rebuild.sh` - re-applies the config after the first switch.
+  Run this every time you make a change.
+- `bootstrap.sh` - first-time setup.
+- `home/` - the actual config files that get symlinked into place.
 
 ## How the symlinks work
 
 The files under `home/` are the real files.
-Editing them here edits your live config, with no rebuild needed.
-`home.nix` uses `mkOutOfStoreSymlink` to point `~/.config/wezterm` straight at `home/.config/wezterm` in this repo (through `~/.dotfiles`, which `rebuild.sh` creates), so the two never drift apart.
-WezTerm reloads its config as soon as you save.
+Editing them here edits your live config, with no rebuild needed to see the change.
+`home.nix` uses `mkOutOfStoreSymlink` to point paths like `~/.config/wezterm` at `~/.dotfiles/home/.config/wezterm`, and `~/.dotfiles` is a symlink to wherever you cloned the repo.
+You only run `./rebuild.sh` when you change something that isn't just a symlinked file, like a package list.
 
-To add another app's config the same way, put it under `home/` and add a line to `home.nix`:
+To link another app's config the same way, put it under `home/` and add to `home.nix`:
 
 ```nix
 home.file.".config/<app>".source =
@@ -168,10 +159,7 @@ home.file.".config/<app>".source =
 ## Troubleshooting
 
 - **`error: path '...' does not exist`**: a new file isn't `git add`-ed.
-- **`Existing file '...' is in the way`**: a `*.hm-backup` from an earlier run already exists. Delete it and re-run.
-- **Brave or WezTerm missing from the launcher**: log out and back in (Home Manager sets `XDG_DATA_DIRS` at login).
-- **WezTerm fails with an EGL error, or Brave is slow**: the GPU link is stale. Run `./rebuild.sh`, or run `sudo non-nixos-gpu-setup` directly.
-- **Brave: "No usable sandbox"**: the AppArmor profile isn't loaded. Run `./rebuild.sh`, then check with `sudo aa-status | grep nix-brave`.
-- **1Password extension can't connect to the app**: add `brave` to `/etc/1password/custom_allowed_browsers`, then restart 1Password.
-- **apt: "Conflicting values set for option Signed-By"**: the same repo is configured twice, usually from an earlier manual install.
-  Delete the extra file in `/etc/apt/sources.list.d/`.
+- **`Existing file '...' would be clobbered`**: move that file out of the way, or keep a backup with `./rebuild.sh -b backup`.
+- **WezTerm fails with an EGL/OpenGL error**: the GPU link is stale.
+  Run `./rebuild.sh`, which relinks it.
+- **WezTerm missing from the app launcher**: log out and back in.

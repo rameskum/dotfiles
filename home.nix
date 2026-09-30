@@ -11,7 +11,7 @@ in
   home.stateVersion = "26.05";
 
   # Ubuntu, not NixOS: puts Nix apps in the app launcher, sources Nix in login
-  # shells, and provides the GPU driver link that system/sync.sh installs.
+  # shells, and provides the GPU driver setup that rebuild.sh runs.
   targets.genericLinux.enable = true;
 
   home.packages = with pkgs; [
@@ -23,7 +23,6 @@ in
     htop
     uv
     # apps
-    brave
     wezterm
     # the font everything renders in
     nerd-fonts.hack
@@ -92,8 +91,6 @@ in
       fi
     '';
   };
-  programs.bash.enable = true;
-
   programs.starship = {
     enable = true;
     settings = {

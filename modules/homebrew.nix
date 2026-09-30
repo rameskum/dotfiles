@@ -52,7 +52,6 @@ in
     home.sessionVariables.HOMEBREW_BUNDLE_FILE = "${config.xdg.configHome}/homebrew/Brewfile";
 
     programs.zsh.initContent = lib.mkOrder 550 shellInit;
-    programs.bash.initExtra = lib.mkOrder 550 shellInit;
 
     home.activation.homebrewBundle = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
       if [ ! -x ${brew} ]; then
