@@ -16,6 +16,7 @@
     uv
     zsh
     nerd-fonts.hack
+    brave
   ];
   fonts.fontconfig.enable = true;
   home.sessionVariables.EDITOR = "nano";
