@@ -1,10 +1,14 @@
 #!/usr/bin/env bash
-# Makes the apt packages on this machine match ubuntu/apt-apps.sh:
-#   - adds each app's vendor repo and signing key, then installs the app
-#   - purges apps that were installed by this script but are no longer listed,
-#     and deletes their repo + key
-# Packages you installed yourself with `apt install` are never touched.
-# Only asks for sudo when something actually needs to change.
+# System-level setup that Home Manager can't do on Ubuntu because it needs root.
+# Run by rebuild.sh after `home-manager switch`. Only asks for sudo when
+# something actually needs to change.
+#   - apt: makes apt apps match system/apps.sh. Adds each vendor repo + key and
+#     installs the app; purges apps removed from the list along with their
+#     repo + key. Packages you installed yourself with `apt install` are never
+#     touched.
+#   - gpu: links /run/opengl-driver so Nix GUI apps (WezTerm, Brave) get
+#     hardware-accelerated graphics.
+#   - apparmor: installs system/apparmor/* so Nix-installed Brave can sandbox.
 set -euo pipefail
 
 DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd -P)"
@@ -24,20 +28,20 @@ app() {
       --keyring) keyring="$2" ;;
       --source) source="$2" ;;
       --repo) repo="$2" ;;
-      *) echo "apt-apps.sh: unknown option '$1' for app $pkg" >&2; exit 1 ;;
+      *) echo "apps.sh: unknown option '$1' for app $pkg" >&2; exit 1 ;;
     esac
     shift 2
   done
   if [ -n "$repo$key$keyring$source" ] &&
      { [ -z "$repo" ] || [ -z "$key" ] || [ -z "$keyring" ] || [ -z "$source" ]; }; then
-    echo "apt-apps.sh: app $pkg needs all of --key, --keyring, --source and --repo" >&2
+    echo "apps.sh: app $pkg needs all of --key, --keyring, --source and --repo" >&2
     exit 1
   fi
   PKGS+=("$pkg") KEYS+=("$key") KEYRINGS+=("$keyring") SOURCES+=("$source") REPOS+=("$repo")
 }
 
-# shellcheck source-path=SCRIPTDIR source=apt-apps.sh
-. "$DIR/apt-apps.sh"
+# shellcheck source-path=SCRIPTDIR source=apps.sh
+. "$DIR/apps.sh"
 
 is_installed() {
   [ "$(dpkg-query -W -f='${db:Status-Status}' "$1" 2>/dev/null)" = "installed" ]
@@ -131,3 +135,28 @@ for i in "${!PKGS[@]}"; do
 done
 
 echo "==> apt: ${#PKGS[@]} app(s) in sync"
+
+# Home Manager's targets.genericLinux.gpu ships this script; it links
+# /run/opengl-driver (via systemd-tmpfiles, so it survives reboots) to the
+# Mesa drivers matching this nixpkgs. Re-run whenever nixpkgs moves them.
+gpu_setup="$(readlink -f "$HOME/.nix-profile/bin/non-nixos-gpu-setup" 2>/dev/null || true)"
+if [ -x "$gpu_setup" ]; then
+  want="$(awk '$2 == "/run/opengl-driver" { print $NF }' "${gpu_setup%/bin/*}/lib/tmpfiles.d/non-nixos-gpu.conf")"
+  if [ "$(readlink /run/opengl-driver 2>/dev/null || true)" != "$want" ]; then
+    echo "==> gpu: linking /run/opengl-driver"
+    sudo "$gpu_setup"
+  fi
+  echo "==> gpu: drivers linked"
+fi
+
+if [ -d /sys/kernel/security/apparmor ] && command -v apparmor_parser >/dev/null 2>&1; then
+  for profile in "$DIR"/apparmor/*; do
+    dest="/etc/apparmor.d/$(basename "$profile")"
+    if ! cmp -s "$profile" "$dest"; then
+      echo "==> apparmor: loading $(basename "$profile")"
+      sudo install -m 0644 "$profile" "$dest"
+      sudo apparmor_parser -r "$dest"
+    fi
+  done
+  echo "==> apparmor: profiles loaded"
+fi

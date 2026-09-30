@@ -1,5 +1,5 @@
-# GUI apps installed from their vendors' official apt repositories.
-# Sourced by ubuntu/apt-sync.sh, which ./rebuild.sh runs after Home Manager.
+# apt apps: only for software that can't work properly from Nix. Everything
+# else goes in home.nix. Sourced by system/sync.sh, which ./rebuild.sh runs.
 #
 #   Add an app:    add an `app` block below, then run ./rebuild.sh
 #   Remove an app: delete its block, then run ./rebuild.sh
@@ -17,20 +17,10 @@
 # $ARCH is the dpkg architecture (amd64, arm64).
 # Packages from Ubuntu's own archive only need `app <package>`.
 
-app brave-browser \
-  --key https://brave-browser-apt-release.s3.brave.com/brave-browser-archive-keyring.gpg \
-  --keyring /usr/share/keyrings/brave-browser-archive-keyring.gpg \
-  --source brave-browser-release.sources \
-  --repo "https://brave-browser-apt-release.s3.brave.com/ stable main"
-
+# Browser integration needs a setgid helper and system unlock needs a polkit
+# policy, neither of which Home Manager can install outside NixOS.
 app 1password \
   --key https://downloads.1password.com/linux/keys/1password.asc \
   --keyring /usr/share/keyrings/1password-archive-keyring.gpg \
   --source 1password.sources \
   --repo "https://downloads.1password.com/linux/debian/$ARCH stable main"
-
-app wezterm \
-  --key https://apt.fury.io/wez/gpg.key \
-  --keyring /usr/share/keyrings/wezterm-fury.gpg \
-  --source wezterm.sources \
-  --repo "https://apt.fury.io/wez/ * *"
