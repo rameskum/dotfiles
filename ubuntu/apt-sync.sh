@@ -36,7 +36,7 @@ app() {
   PKGS+=("$pkg") KEYS+=("$key") KEYRINGS+=("$keyring") SOURCES+=("$source") REPOS+=("$repo")
 }
 
-# shellcheck source=apt-apps.sh
+# shellcheck source-path=SCRIPTDIR source=apt-apps.sh
 . "$DIR/apt-apps.sh"
 
 is_installed() {
@@ -53,8 +53,11 @@ contains() {
   return 1
 }
 
-deb_line() {
-  echo "deb [arch=$ARCH signed-by=$1] $2"
+deb822_source() {
+  local keyring="$1" uri suite components
+  read -r uri suite components <<< "$2"
+  printf 'Types: deb\nURIs: %s\nSuites: %s\nComponents: %s\nArchitectures: %s\nSigned-By: %s\n' \
+    "$uri" "$suite" "$components" "$ARCH" "$keyring"
 }
 
 need_update=0
@@ -79,7 +82,7 @@ for i in "${!PKGS[@]}"; do
   [ -n "${SOURCES[$i]}" ] || continue
   keyring="${KEYRINGS[$i]}"
   source_path="$SOURCES_DIR/${SOURCES[$i]}"
-  line="$(deb_line "$keyring" "${REPOS[$i]}")"
+  uri="${REPOS[$i]%% *}"
 
   if [ ! -s "$keyring" ]; then
     echo "==> apt: adding signing key for ${PKGS[$i]}"
@@ -94,9 +97,11 @@ for i in "${!PKGS[@]}"; do
     need_update=1
   fi
 
-  if [ "$(cat "$source_path" 2>/dev/null)" != "$line" ]; then
+  # Some vendor packages (1Password) rewrite their own .sources file, so accept
+  # any file that points at the right URI instead of demanding exact contents.
+  if ! grep -qxF "URIs: $uri" "$source_path" 2>/dev/null; then
     echo "==> apt: writing $source_path"
-    echo "$line" | sudo tee "$source_path" >/dev/null
+    deb822_source "$keyring" "${REPOS[$i]}" | sudo tee "$source_path" >/dev/null
     need_update=1
   fi
 done

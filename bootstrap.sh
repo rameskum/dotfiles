@@ -34,7 +34,11 @@ fi
 
 echo "==> Step 2: apt prerequisites (curl, git, zsh, Homebrew build deps)"
 sudo apt-get update
-sudo apt-get install -y curl git gpg zsh build-essential procps file
+# If Nix is already installed it owns /etc/zsh/zshrc; keep that file rather
+# than stopping at dpkg's "configuration file modified" prompt.
+sudo DEBIAN_FRONTEND=noninteractive apt-get install -y \
+  -o Dpkg::Options::=--force-confdef -o Dpkg::Options::=--force-confold \
+  curl git gpg zsh build-essential procps file
 
 echo "==> Step 3: Determinate Nix"
 if command -v nix >/dev/null 2>&1; then
@@ -54,7 +58,7 @@ if [ -x /home/linuxbrew/.linuxbrew/bin/brew ]; then
 else
   # The installer needs sudo to create /home/linuxbrew; refresh the cached
   # credentials so its non-interactive sudo calls succeed.
-  sudo -v
+  sudo true
   NONINTERACTIVE=1 bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
 fi
 
