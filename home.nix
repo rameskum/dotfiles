@@ -67,6 +67,7 @@ in
       "nvm"
       "wget"
       "gh"
+      "opencode"
     ];
   };
 
