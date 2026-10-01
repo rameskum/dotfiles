@@ -10,7 +10,7 @@ Modeled on [kunchenguid/dotfiles](https://github.com/kunchenguid/dotfiles) (macO
 Running the switch builds:
 
 - Nix packages: git, ripgrep, fd, jq, htop, uv, WezTerm, VS Code, JetBrains Mono, Hack Nerd Font
-- Homebrew formulae: nvm, wget, gh
+- Homebrew formulae: nvm, wget, gh, opencode, bun, openjdk@25 (`java` and `javac`; the formula is keg-only, so the shell config adds it to `PATH`)
 - Shell: zsh (login shell), aliases, and a Starship prompt, plus autosuggestions, syntax highlighting, history substring search, fzf (`Ctrl+R`, `Ctrl+T`), zoxide (`z`), eza (`ls`, `ll`, `lt`), and bat
 - Terminal: WezTerm with the Batman color scheme, JetBrains Mono at 13px, and Hack Nerd Font Mono as the icon fallback
 - Editor: VS Code with the Docker extension (Container Tools, `ms-azuretools.vscode-containers`) and the same fonts, ligatures on
@@ -164,3 +164,5 @@ home.file.".config/<app>".source =
 - **WezTerm fails with an EGL/OpenGL error**: the GPU link is stale.
   Run `./rebuild.sh`, which relinks it.
 - **WezTerm missing from the app launcher**: log out and back in.
+- **`zsh: command not found: java`**: `openjdk@25` installs, but Homebrew does not link versioned JDKs. Open a new terminal after `./rebuild.sh`. `JAVA_HOME` points at the keg's `libexec`.
+- **`zsh: command not found: code`**: a VS Code you installed by hand is picked up from `~/.local/bin`, `/usr/share/code/bin`, or `/snap/bin`. Open a new terminal after `./rebuild.sh`.

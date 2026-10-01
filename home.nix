@@ -69,6 +69,8 @@ in
       "gh"
       "opencode"
       "bun"
+      # Versioned JDKs are keg-only: brew installs this but does not link
+      # java into HOMEBREW_PREFIX/bin. The zsh block below puts it on PATH.
       "openjdk@25"
     ];
   };
@@ -119,6 +121,33 @@ in
       if [ -s "$HOMEBREW_PREFIX/opt/nvm/nvm.sh" ]; then
         mkdir -p "$NVM_DIR"
         . "$HOMEBREW_PREFIX/opt/nvm/nvm.sh"
+      fi
+
+      # Runs after `brew shellenv` (order 550), so HOMEBREW_PREFIX is set.
+      # openjdk@25 is keg-only, which is why `java` is missing after install.
+      if [ -n "''${HOMEBREW_PREFIX:-}" ] && [ -x "$HOMEBREW_PREFIX/opt/openjdk@25/bin/java" ]; then
+        jdk="$HOMEBREW_PREFIX/opt/openjdk@25"
+        if [ -x "$jdk/libexec/bin/java" ]; then
+          export JAVA_HOME="$jdk/libexec"
+        else
+          export JAVA_HOME="$jdk"
+        fi
+        path=("$jdk/bin" $path)
+        unset jdk
+      fi
+
+      # A hand-installed VS Code does not always provide `code`.
+      # The .deb's real CLI is /usr/share/code/bin/code. ~/.local/bin is where a
+      # user symlink lands, so it stays ahead of that. Snap puts `code` in
+      # /snap/bin, which a non-login zsh does not always inherit.
+      if [ -x /usr/share/code/bin/code ]; then
+        path=(/usr/share/code/bin $path)
+      fi
+      if [ -d "$HOME/.local/bin" ]; then
+        path=("$HOME/.local/bin" $path)
+      fi
+      if [ -d /snap/bin ]; then
+        path+=(/snap/bin)
       fi
     '';
   };
