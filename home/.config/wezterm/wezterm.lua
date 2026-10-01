@@ -6,13 +6,13 @@ config.initial_cols = 120
 config.initial_rows = 28
 config.enable_scroll_bar = true
 
-config.color_scheme = "Batman"
+config.color_scheme = "rose-pine-moon"
 
 config.font = wezterm.font_with_fallback({
   "JetBrains Mono",
   "Hack Nerd Font Mono",
 })
-config.font_size = 13.0
+config.font_size = 15.0
 
 config.window_padding = { left = 8, right = 8, top = 8, bottom = 8 }
 config.window_decorations = "RESIZE"
