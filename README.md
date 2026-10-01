@@ -9,10 +9,11 @@ Modeled on [kunchenguid/dotfiles](https://github.com/kunchenguid/dotfiles) (macO
 
 Running the switch builds:
 
-- Nix packages: git, ripgrep, fd, jq, htop, uv, WezTerm, Hack Nerd Font
+- Nix packages: git, ripgrep, fd, jq, htop, uv, WezTerm, VS Code, JetBrains Mono, Hack Nerd Font
 - Homebrew formulae: nvm, wget, gh
 - Shell: zsh (login shell), aliases, and a Starship prompt, plus autosuggestions, syntax highlighting, history substring search, fzf (`Ctrl+R`, `Ctrl+T`), zoxide (`z`), eza (`ls`, `ll`, `lt`), and bat
-- Terminal: WezTerm config with Catppuccin Mocha and Hack Nerd Font
+- Terminal: WezTerm with the Batman color scheme, JetBrains Mono at 13px, and Hack Nerd Font Mono as the icon fallback
+- Editor: VS Code with the Docker extension (Container Tools, `ms-azuretools.vscode-containers`) and the same fonts, ligatures on
 
 Anything that can't come from Nix or Homebrew (Brave, 1Password, ...) I install by hand.
 
@@ -48,7 +49,7 @@ Before you run it, review "Make it yours" below and read the Homebrew cleanup wa
 6. Runs `./rebuild.sh` for the first switch.
 7. Makes `/usr/bin/zsh` your login shell.
 
-Log out and back in afterwards to get zsh and to see WezTerm in the app launcher.
+Log out and back in afterwards to get zsh and to see WezTerm and VS Code in the app launcher.
 
 ### Validate without applying
 
@@ -107,7 +108,7 @@ Delete the line and run `./rebuild.sh` to uninstall.
 **Homebrew casks don't work on Linux.** Every GUI cask ships a macOS `.app`/`.dmg`, and `brew install --cask ...` fails with "This cask requires macOS".
 Use Nix for GUI apps, or install them by hand.
 
-Unfree Nix packages (VS Code, Slack, ...) need `nixpkgs.config.allowUnfree = true;` in `home.nix`.
+`home.nix` sets `nixpkgs.config.allowUnfree = true;` so VS Code can be installed. Other unfree packages (Slack, ...) can go in `home.packages` the same way.
 
 To try something without installing it: `nix shell nixpkgs#<pkg>`.
 

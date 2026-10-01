@@ -14,6 +14,9 @@ in
   # shells, and provides the GPU driver setup that rebuild.sh runs.
   targets.genericLinux.enable = true;
 
+  # vscode is unfree
+  nixpkgs.config.allowUnfree = true;
+
   home.packages = with pkgs; [
     # cli i use constantly
     git
@@ -24,11 +27,36 @@ in
     uv
     # apps
     wezterm
-    # the font everything renders in
+    # jetbrains mono is the face; hack nerd font supplies the icons
+    jetbrains-mono
     nerd-fonts.hack
   ];
-  fonts.fontconfig.enable = true;
+  fonts.fontconfig = {
+    enable = true;
+    defaultFonts.monospace = [
+      "JetBrains Mono"
+      "Hack Nerd Font Mono"
+    ];
+  };
   home.sessionVariables.EDITOR = "nano";
+
+  # Docker extension is now published as Container Tools.
+  programs.vscode = {
+    enable = true;
+    profiles.default = {
+      enableUpdateCheck = false; # the nix build can't update itself
+      extensions = with pkgs.vscode-extensions; [
+        ms-azuretools.vscode-containers
+      ];
+      userSettings = {
+        "editor.fontFamily" = "'JetBrains Mono', 'Hack Nerd Font Mono', monospace";
+        "editor.fontLigatures" = true;
+        "editor.fontSize" = 13;
+        "terminal.integrated.fontFamily" = "'JetBrains Mono', 'Hack Nerd Font Mono'";
+        "terminal.integrated.fontSize" = 13;
+      };
+    };
+  };
 
   # Formulae only: casks are macOS-only. Anything installed with
   # `brew install` that isn't listed here is uninstalled on the next rebuild.
