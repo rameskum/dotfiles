@@ -8,7 +8,10 @@ config.enable_scroll_bar = true
 
 config.color_scheme = "Batman"
 
-config.font = wezterm.font("JetBrains Mono")
+config.font = wezterm.font_with_fallback({
+  "JetBrains Mono",
+  "Hack Nerd Font Mono",
+})
 config.font_size = 13.0
 
 config.window_padding = { left = 8, right = 8, top = 8, bottom = 8 }
