@@ -68,6 +68,8 @@ in
       "wget"
       "gh"
       "opencode"
+      "bun"
+      "openjdk@25"
     ];
   };
 
