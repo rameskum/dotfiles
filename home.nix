@@ -51,7 +51,7 @@ in
       userSettings = {
         "editor.fontFamily" = "'JetBrains Mono', 'Hack Nerd Font Mono', monospace";
         "editor.fontLigatures" = true;
-        "editor.fontSize" = 13;
+        "editor.fontSize" = 15;
         "terminal.integrated.fontFamily" = "'JetBrains Mono', 'Hack Nerd Font Mono'";
         "terminal.integrated.fontSize" = 13;
       };
@@ -98,6 +98,7 @@ in
       ignoreSpace = true;
     };
     shellAliases = {
+      c = "clear";
       ".." = "cd ..";
       cat = "bat --paging=never";
       add = "git add .";
@@ -167,6 +168,12 @@ in
   };
 
   # Edit-in-place: the real file stays in this repo, ~/.config just points at it.
-  home.file.".config/wezterm".source =
+  home.file.".config/wezterm".source = 
     config.lib.file.mkOutOfStoreSymlink "${dotfiles}/home/.config/wezterm";
+  home.file.".claude/CLAUDE.md".source =
+    config.lib.file.mkOutOfStoreSymlink "${dotfiles}/home/AGENTS.md";
+  home.file.".codex/AGENTS.md".source =
+    config.lib.file.mkOutOfStoreSymlink "${dotfiles}/home/AGENTS.md";
+  home.file.".config/opencode/AGENTS.md".source =
+    config.lib.file.mkOutOfStoreSymlink "${dotfiles}/home/AGENTS.md";
 }
