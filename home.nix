@@ -202,6 +202,8 @@ in
   # Edit-in-place: the real file stays in this repo, ~/.config just points at it.
   home.file.".config/wezterm".source = 
     config.lib.file.mkOutOfStoreSymlink "${dotfiles}/home/.config/wezterm";
+  home.file.".config/nvim".source =
+    config.lib.file.mkOutOfStoreSymlink "${dotfiles}/home/.config/nvim";
   home.file.".claude/CLAUDE.md".source =
     config.lib.file.mkOutOfStoreSymlink "${dotfiles}/home/AGENTS.md";
   home.file.".codex/AGENTS.md".source =
