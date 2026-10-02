@@ -207,4 +207,6 @@ in
     config.lib.file.mkOutOfStoreSymlink "${dotfiles}/home/AGENTS.md";
   home.file.".agents".source =
     config.lib.file.mkOutOfStoreSymlink "${dotfiles}/home/.agents";
+  home.file.".config/herdr".source =
+    config.lib.file.mkOutOfStoreSymlink "${dotfiles}/home/.config/herdr";
 }
