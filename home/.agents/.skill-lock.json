@@ -1,0 +1,41 @@
+{
+  "version": 3,
+  "skills": {
+    "lavish": {
+      "source": "kunchenguid/lavish-axi",
+      "sourceType": "github",
+      "sourceUrl": "https://github.com/kunchenguid/lavish-axi.git",
+      "skillPath": "skills/lavish/SKILL.md",
+      "skillFolderHash": "680ba3c9c9480ae13b515ccf0ad2837957ba10e8",
+      "installedAt": "2026-10-02T20:36:44.413Z",
+      "updatedAt": "2026-10-02T20:36:44.413Z"
+    },
+    "find-skills": {
+      "source": "vercel-labs/skills",
+      "sourceType": "github",
+      "sourceUrl": "https://github.com/vercel-labs/skills.git",
+      "skillPath": "skills/find-skills/SKILL.md",
+      "skillFolderHash": "76a98a285cb0434f3d39e1a873823556330e398b",
+      "installedAt": "2026-10-02T20:36:46.159Z",
+      "updatedAt": "2026-10-02T20:36:46.159Z"
+    }
+  },
+  "dismissed": {
+    "findSkillsPrompt": true
+  },
+  "lastSelectedAgents": [
+    "amp",
+    "cline",
+    "codex",
+    "cursor",
+    "droid",
+    "gemini-cli",
+    "github-copilot",
+    "kilo",
+    "kimi-code-cli",
+    "opencode",
+    "warp",
+    "zed",
+    "claude-code"
+  ]
+}
