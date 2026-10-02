@@ -22,9 +22,12 @@ in
     git
     ripgrep   # fast search
     fd        # fast find
+    fzf
     jq        # json on the command line
     htop
     uv
+    neovim
+    lazygit
     # apps
     wezterm
     # jetbrains mono is the face; hack nerd font supplies the icons
