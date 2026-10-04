@@ -41,7 +41,11 @@ in
       "Hack Nerd Font Mono"
     ];
   };
-  home.sessionVariables.EDITOR = "nano";
+  home.sessionVariables = {
+    EDITOR = "nano";
+    INFISICAL_DOMAIN = "https://secrets.labgrid.dev/api";
+    SSH_AUTH_SOCK = "${config.home.homeDirectory}/.bitwarden-ssh-agent.sock";
+  };
 
   # Docker extension is now published as Container Tools.
   programs.vscode = {
@@ -153,6 +157,23 @@ in
       if [ -d /snap/bin ]; then
         path+=(/snap/bin)
       fi
+
+      # pnpm's installer writes this into ~/.zshrc, which rebuild overwrites.
+      export PNPM_HOME="$HOME/.local/share/pnpm"
+      if [ -d "$PNPM_HOME/bin" ]; then
+        path=("$PNPM_HOME/bin" $path)
+      fi
+
+      # LM Studio CLI (lms). Appended so it does not shadow other bins.
+      if [ -d "$HOME/.lmstudio/bin" ]; then
+        path+=("$HOME/.lmstudio/bin")
+      fi
+
+      # Session variables are sourced once per process tree. A terminal that
+      # inherits __HM_SESS_VARS_SOURCED skips them, and WezTerm replaces
+      # SSH_AUTH_SOCK with its own agent. Set these on every interactive shell.
+      export INFISICAL_DOMAIN="https://secrets.labgrid.dev/api"
+      export SSH_AUTH_SOCK="$HOME/.bitwarden-ssh-agent.sock"
     '';
   };
   programs.starship = {
@@ -210,6 +231,8 @@ in
     config.lib.file.mkOutOfStoreSymlink "${dotfiles}/home/AGENTS.md";
   home.file.".config/opencode/AGENTS.md".source =
     config.lib.file.mkOutOfStoreSymlink "${dotfiles}/home/AGENTS.md";
+  home.file.".config/opencode/opencode.jsonc".source =
+    config.lib.file.mkOutOfStoreSymlink "${dotfiles}/home/.config/opencode/opencode.jsonc";
   home.file.".agents".source =
     config.lib.file.mkOutOfStoreSymlink "${dotfiles}/home/.agents";
   home.file.".config/herdr".source =
