@@ -27,6 +27,15 @@
       "skillFolderHash": "6d250b8ef8a701fa82cfc2f15f005c4efa2c73a7",
       "installedAt": "2026-10-02T20:41:38.615Z",
       "updatedAt": "2026-10-02T20:41:38.615Z"
+    },
+    "quota-axi": {
+      "source": "kunchenguid/quota-axi",
+      "sourceType": "github",
+      "sourceUrl": "https://github.com/kunchenguid/quota-axi.git",
+      "skillPath": "skills/quota-axi/SKILL.md",
+      "skillFolderHash": "e997bfcd18773d6e43c42155e6388e560d2aa964",
+      "installedAt": "2026-10-05T00:26:20.656Z",
+      "updatedAt": "2026-10-05T00:26:20.656Z"
     }
   },
   "dismissed": {
