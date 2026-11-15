@@ -91,6 +91,25 @@ in
     };
   };
 
+  # Keys live in the Bitwarden desktop SSH agent. Pin a host to its key so ssh
+  # doesn't offer every vault key and hit the server's MaxAuthTries limit.
+  # A .pub IdentityFile only selects which agent key to use; no private key
+  # is ever on disk.
+  programs.ssh = {
+    enable = true;
+    enableDefaultConfig = false;
+    settings = {
+      "*" = {
+        IdentityAgent = "~/.bitwarden-ssh-agent.sock";
+      };
+      "github.com" = {
+        IdentityFile = "~/.ssh/github.pub";
+        IdentitiesOnly = true;
+      };
+    };
+  };
+  home.file.".ssh/github.pub".source = ./home/.ssh/github.pub;
+
   # bootstrap.sh makes /usr/bin/zsh the login shell; this owns ~/.zshrc.
   programs.zsh = {
     enable = true;
