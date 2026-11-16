@@ -75,7 +75,8 @@ jobs:
         shell: bash
         run: |
           export HOME="$TEST_HOME"
-          export PATH="$(brew --prefix)/bin:$PATH"
+          brew_bin="$(brew --prefix)/bin"
+          export PATH="$brew_bin:$PATH"
           tests/verify-zsh.sh
 
       - name: Check PowerShell profile (macOS, Linux)
@@ -83,7 +84,8 @@ jobs:
         shell: bash
         run: |
           export HOME="$TEST_HOME"
-          export PATH="$(brew --prefix)/bin:$PATH"
+          brew_bin="$(brew --prefix)/bin"
+          export PATH="$brew_bin:$PATH"
           pwsh -NoProfile -File tests/verify-pwsh.ps1
 
       - name: Check the Nerd Font is installed (macOS, Linux)
@@ -99,7 +101,8 @@ jobs:
         if: runner.os == 'macOS'
         shell: bash
         run: |
-          export PATH="$(brew --prefix)/bin:$PATH"
+          brew_bin="$(brew --prefix)/bin"
+          export PATH="$brew_bin:$PATH"
           wezterm --config-file "$TEST_HOME/.wezterm.lua" ls-fonts | tee "$RUNNER_TEMP/ls-fonts.txt"
           grep -q 'JetBrainsMono Nerd Font' "$RUNNER_TEMP/ls-fonts.txt"
 

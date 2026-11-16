@@ -5,6 +5,9 @@
 #   HOME=/tmp/home tests/verify-zsh.sh
 #
 # DOTFILES_SRC is the chezmoi source checkout (default: this repo).
+# The zsh snippets are single-quoted on purpose (zsh expands them, not sh), and
+# `A && pass || fail` is fine because pass cannot fail.
+# shellcheck disable=SC2016,SC2015
 set -eu
 
 SRC=${DOTFILES_SRC:-$(cd "$(dirname "$0")/.." && pwd)}

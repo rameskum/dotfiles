@@ -170,6 +170,7 @@ CI (`.github/workflows/chezmoi.yml`) runs `chezmoi init --apply` from the checko
 - every alias is defined in zsh and in PowerShell;
 - the starship prompt renders and is hooked into both shells;
 - zsh has completion, autosuggestions, syntax highlighting, history search, fzf and zoxide loaded;
+- a real interactive session in a pseudo-terminal (`tests/shell-pty.py`) draws the prompt, completes a path with Tab and offers an earlier command as a suggestion, in zsh and in PowerShell (macOS and Linux; on Windows this is the manual check below);
 - the Nerd Font is installed (macOS, Linux).
 
 To run the same checks on a machine where you applied the setup:
@@ -179,7 +180,9 @@ tests/verify-zsh.sh                              # macOS, Linux, WSL
 pwsh -NoProfile -File tests/verify-pwsh.ps1      # any OS with the PowerShell profile
 ```
 
-Manual check for the Nerd Font in WezTerm (do this once per OS, especially Windows): open WezTerm and run
+Manual check on Windows (CI cannot drive a console there): open WezTerm, type a command, start typing it again and see the grey suggestion, press Tab and see the completion menu.
+
+Manual check for the Nerd Font in WezTerm (once per OS, especially Windows): open WezTerm and run
 
 ```sh
 wezterm ls-fonts --text "$(printf '  ')"
@@ -197,7 +200,7 @@ or just look at the prompt: the OS logo, the branch icon and the `❯` must show
   - `.chezmoidata/` - aliases, environment variables and package lists.
   - `.chezmoiscripts/` - the per-OS install scripts.
   - `.chezmoi.toml.tmpl`, `.chezmoiignore` - init-time settings and per-OS file selection.
-- `tests/` - the checks CI runs.
+- `tests/` - the checks CI runs: `verify-zsh.sh`, `verify-pwsh.ps1`, `shell-pty.py` (interactive session), `no-secrets.sh`.
 - `.github/workflows/chezmoi.yml` - the CI workflow.
 - `flake.nix`, `home.nix`, `modules/`, `home/`, `bootstrap.sh`, `rebuild.sh` - the legacy Nix setup.
 
