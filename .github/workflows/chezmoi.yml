@@ -96,7 +96,8 @@ jobs:
             export HOME="$TEST_HOME"
             fc-list | grep 'JetBrainsMono Nerd Font'
           fi
-          wezterm --config-file "$TEST_HOME/.wezterm.lua" ls-fonts | tee "$RUNNER_TEMP/ls-fonts.txt"
+          # The Linux WezTerm is an AppImage; extract-and-run avoids needing FUSE.
+          APPIMAGE_EXTRACT_AND_RUN=1 wezterm --config-file "$TEST_HOME/.wezterm.lua" ls-fonts | tee "$RUNNER_TEMP/ls-fonts.txt"
           grep -q 'JetBrainsMono Nerd Font' "$RUNNER_TEMP/ls-fonts.txt"
 
       # ---- Windows: applied into the runner's own (throwaway) profile ----

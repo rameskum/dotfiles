@@ -64,6 +64,7 @@ zsh is already the login shell.
 4. Make zsh the login shell: `chsh -s "$(command -v zsh)"`, then log out and in.
 
 It installs WezTerm from its own Linuxbrew tap (`wezterm/wezterm-linuxbrew`) and reads `~/.wezterm.lua`.
+That WezTerm is an AppImage, so it needs FUSE 2: the install script runs `sudo apt-get install libfuse2t64` (`libfuse2` before Ubuntu 24.04) when it is missing.
 
 ### Windows (native, PowerShell 7)
 
