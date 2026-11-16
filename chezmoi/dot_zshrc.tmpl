@@ -1,0 +1,64 @@
+# Managed by chezmoi (rameskum/dotfiles). Edit with `chezmoi edit --apply ~/.zshrc`.
+# zsh on macOS, Linux and WSL. The PowerShell equivalent is the PowerShell profile.
+
+# Homebrew: Apple Silicon, Intel macOS, Linuxbrew.
+for brew_bin in /opt/homebrew/bin/brew /usr/local/bin/brew /home/linuxbrew/.linuxbrew/bin/brew; do
+  if [[ -x $brew_bin ]]; then
+    eval "$($brew_bin shellenv)"
+    break
+  fi
+done
+unset brew_bin
+
+[[ -d $HOME/.local/bin ]] && path=("$HOME/.local/bin" $path)
+
+export EDITOR=nano
+{{ range $name, $value := .env -}}
+export {{ $name }}={{ $value | quote }}
+{{ end -}}
+# Bitwarden desktop SSH agent (unix socket). Windows uses a named pipe instead.
+[[ -S $HOME/.bitwarden-ssh-agent.sock ]] && export SSH_AUTH_SOCK=$HOME/.bitwarden-ssh-agent.sock
+
+# History
+HISTFILE=$HOME/.zsh_history
+HISTSIZE=50000
+SAVEHIST=50000
+setopt SHARE_HISTORY HIST_IGNORE_ALL_DUPS HIST_IGNORE_SPACE AUTO_CD
+
+# Completion: case-insensitive, menu selection, coloured like ls.
+if [[ -n ${HOMEBREW_PREFIX:-} ]]; then
+  fpath=("$HOMEBREW_PREFIX/share/zsh/site-functions" $fpath)
+fi
+autoload -Uz compinit && compinit
+zstyle ':completion:*' menu select
+zstyle ':completion:*' matcher-list 'm:{a-zA-Z}={A-Za-z}'
+zstyle ':completion:*' list-colors "${(s.:.)LS_COLORS}"
+
+# Plugins from Homebrew. Syntax highlighting is sourced last of the two that
+# wrap widgets, history-substring-search after it (both plugins say so).
+if [[ -n ${HOMEBREW_PREFIX:-} ]]; then
+  for plugin in \
+    zsh-autosuggestions/zsh-autosuggestions.zsh \
+    zsh-syntax-highlighting/zsh-syntax-highlighting.zsh \
+    zsh-history-substring-search/zsh-history-substring-search.zsh
+  do
+    [[ -r $HOMEBREW_PREFIX/share/$plugin ]] && source "$HOMEBREW_PREFIX/share/$plugin"
+  done
+  unset plugin
+fi
+bindkey '^f' autosuggest-accept
+bindkey '^[[A' history-substring-search-up
+bindkey '^[[B' history-substring-search-down
+bindkey '^[OA' history-substring-search-up
+bindkey '^[OB' history-substring-search-down
+
+# Aliases: one list for every shell, chezmoi/.chezmoidata/aliases.yaml.
+{{ range (includeTemplate "aliases.json" . | fromJson) -}}
+{{   $requires := get . "requires" -}}
+{{   if $requires }}(( $+commands[{{ $requires }}] )) && {{ end -}}
+alias -- {{ .name }}={{ .command | squote }}
+{{ end }}
+# fzf (Ctrl+R history, Ctrl+T files), zoxide (`z`), then the prompt last.
+(( $+commands[fzf] )) && source <(fzf --zsh)
+(( $+commands[zoxide] )) && eval "$(zoxide init zsh)"
+(( $+commands[starship] )) && eval "$(starship init zsh)"

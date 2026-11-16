@@ -1,6 +1,6 @@
 # Project notes for agents
 
-Deliberate decisions in this repo - do NOT silently revert them:
+Deliberate decisions in the Nix/home-manager setup (the chezmoi setup under `chezmoi/` has its own install scripts: Homebrew formulae and casks, WinGet on Windows) - do NOT silently revert them:
 
 - `homebrew.cleanup = true` in `home.nix` is intentional: every Homebrew formula must be declared, and ad-hoc `brew install`s are removed on rebuild.
 - Software comes only from Nix (`home.packages`) or Homebrew formulae. Apps that can't (Brave, 1Password, ...) are installed by hand; don't add apt/system layers for them.

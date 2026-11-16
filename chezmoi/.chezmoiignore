@@ -1,0 +1,12 @@
+{{- /* Per-OS file selection. Paths are relative to $HOME. */ -}}
+{{ if eq .chezmoi.os "windows" }}
+.zshrc
+.config/powershell
+.chezmoiscripts/install-packages.sh
+{{ else }}
+Documents
+.chezmoiscripts/install-packages.ps1
+{{   if not .powershell }}
+.config/powershell
+{{   end }}
+{{ end }}

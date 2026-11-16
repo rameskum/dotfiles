@@ -1,0 +1,13 @@
+{{- /*
+  The aliases that apply on this OS, as JSON. Both shells and the tests read
+  this, so the os filter lives in exactly one place.
+  Use: {{ includeTemplate "aliases.json" . | fromJson }}
+*/ -}}
+{{- $out := list -}}
+{{- range .aliases -}}
+{{-   $os := get . "os" -}}
+{{-   if or (not $os) (has $.chezmoi.os $os) -}}
+{{-     $out = append $out . -}}
+{{-   end -}}
+{{- end -}}
+{{- toJson $out -}}
