@@ -5,8 +5,9 @@
 #
 # $env:DOTFILES_SRC is the chezmoi source checkout (default: this repo).
 $ErrorActionPreference = 'Stop'
+[Console]::OutputEncoding = [Text.UTF8Encoding]::new()
 
-$src = if ($env:DOTFILES_SRC) { $env:DOTFILES_SRC } else { Split-Path -Parent $PSScriptRoot }
+$src =if ($env:DOTFILES_SRC) { $env:DOTFILES_SRC } else { Split-Path -Parent $PSScriptRoot }
 $failures = 0
 
 function Pass($msg) { Write-Host "ok   $msg" }
