@@ -23,6 +23,14 @@ if [ -z "$BREW" ]; then
   exit 1
 fi
 eval "$("$BREW" shellenv)"
+{{- if not .wsl }}
+{{-   range (index .packages.terminal .chezmoi.os).taps }}
+
+# Homebrew refuses to load formulae from a third-party tap until it is trusted.
+"$BREW" tap {{ . | quote }}
+"$BREW" trust --tap {{ . | quote }}
+{{-   end }}
+{{- end }}
 
 brewfile=$(mktemp)
 trap 'rm -f "$brewfile"' EXIT
