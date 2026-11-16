@@ -64,15 +64,21 @@ jobs:
         run: |
           mkdir -p "$RUNNER_TEMP/home"
           echo "TEST_HOME=$RUNNER_TEMP/home" >> "$GITHUB_ENV"
+          # macOS only finds fonts in the real user's ~/Library/Fonts, so the
+          # font cask goes there rather than into the temporary home.
+          if [ "$RUNNER_OS" = macOS ]; then
+            export HOMEBREW_CASK_OPTS="--fontdir=$HOME/Library/Fonts"
+          fi
           HOME="$RUNNER_TEMP/home" chezmoi init --apply --no-tty --source "$GITHUB_WORKSPACE"
+          # Later steps use what Homebrew installed. Linuxbrew is not on PATH.
+          brew=$(command -v brew || echo /home/linuxbrew/.linuxbrew/bin/brew)
+          echo "$("$brew" --prefix)/bin" >> "$GITHUB_PATH"
 
       - name: Check zsh (macOS, Linux)
         if: runner.os != 'Windows'
         shell: bash
         run: |
           export HOME="$TEST_HOME"
-          brew_bin="$(brew --prefix)/bin"
-          export PATH="$brew_bin:$PATH"
           tests/verify-zsh.sh
 
       - name: Check the Nerd Font is installed (macOS, Linux)
@@ -90,8 +96,6 @@ jobs:
         if: runner.os != 'Windows'
         shell: bash
         run: |
-          brew_bin="$(brew --prefix)/bin"
-          export PATH="$brew_bin:$PATH"
           if [ "$RUNNER_OS" = Linux ]; then
             export HOME="$TEST_HOME"
             fc-list | grep 'JetBrainsMono Nerd Font'
@@ -136,7 +140,9 @@ jobs:
         if: runner.os == 'Windows'
         shell: pwsh
         run: |
-          $env:Path = [Environment]::GetEnvironmentVariable('Path', 'Machine') + ';' + [Environment]::GetEnvironmentVariable('Path', 'User')
+          # Pick up the PATH entries WinGet just added, keeping this step's own
+          # (chezmoi is on it).
+          $env:Path = [Environment]::GetEnvironmentVariable('Path', 'Machine') + ';' + [Environment]::GetEnvironmentVariable('Path', 'User') + ';' + $env:Path
           pwsh -NoProfile -File tests/verify-pwsh.ps1
 
       # Windows fonts and WezTerm rendering are a documented manual check
