@@ -45,7 +45,13 @@ cmp -s "$SRC/chezmoi/dot_config/starship.toml" "$HOME/.config/starship.toml" \
 python3 "$SRC/tests/shell-pty.py" "$os_symbol" || failures=$((failures + 1))
 
 # Aliases: every alias that applies here (and whose command exists) is defined.
-chezmoi --source "$SRC" execute-template <"$SRC/tests/aliases.tmpl" | while IFS=$TAB read -r name requires; do
+# Rendered first so a chezmoi failure fails the check instead of feeding the
+# loop an empty list.
+if ! aliases=$(chezmoi --source "$SRC" execute-template <"$SRC/tests/aliases.tmpl") || [ -z "$aliases" ]; then
+  fail "could not render the alias list with chezmoi"
+fi
+printf '%s\n' "$aliases" | while IFS=$TAB read -r name requires; do
+  [ -n "$name" ] || continue
   if [ -n "$requires" ] && ! zsh_i "(( \$+commands[$requires] ))" >/dev/null; then
     echo "skip alias $name ($requires not installed)"
     continue
