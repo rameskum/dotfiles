@@ -7,7 +7,7 @@
 # DOTFILES_SRC is the chezmoi source checkout (default: this repo).
 # The zsh snippets are single-quoted on purpose (zsh expands them, not sh), and
 # `A && pass || fail` is fine because pass cannot fail.
-# shellcheck disable=SC2016,SC2015
+# shellcheck disable=SC2016,SC2015,SC1091
 set -eu
 
 SRC=${DOTFILES_SRC:-$(cd "$(dirname "$0")/.." && pwd)}
@@ -22,6 +22,17 @@ zsh_i() { zsh -i -c "$1" 2>&1; }
 
 [ -f "$HOME/.zshrc" ] || { echo "FAIL $HOME/.zshrc missing" >&2; exit 1; }
 
+# The OS logo the shared starship.toml puts in the prompt. The os module is off
+# in starship's defaults, so this glyph proves the config took effect.
+if [ "$(uname -s)" = Darwin ]; then
+  os_symbol=$(printf '\357\205\271') # U+F179
+elif [ "$(. /etc/os-release && echo "$ID")" = ubuntu ]; then
+  os_symbol=$(printf '\357\214\233') # U+F31B
+else
+  echo "FAIL no expected starship OS symbol for this OS (macOS and Ubuntu only)" >&2
+  exit 1
+fi
+
 # Files: same bytes as the source, so every OS gets the same terminal and prompt.
 cmp -s "$SRC/chezmoi/dot_wezterm.lua" "$HOME/.wezterm.lua" \
   && pass ".wezterm.lua matches source" || fail ".wezterm.lua differs from source"
@@ -31,7 +42,7 @@ cmp -s "$SRC/chezmoi/dot_config/starship.toml" "$HOME/.config/starship.toml" \
 
 # A real interactive session in a pseudo-terminal: clean startup, the prompt is
 # drawn, Tab completes, an earlier command comes back as a suggestion.
-python3 "$SRC/tests/shell-pty.py" zsh || failures=$((failures + 1))
+python3 "$SRC/tests/shell-pty.py" "$os_symbol" || failures=$((failures + 1))
 
 # Aliases: every alias that applies here (and whose command exists) is defined.
 chezmoi --source "$SRC" execute-template <"$SRC/tests/aliases.tmpl" | while IFS=$TAB read -r name requires; do
@@ -55,7 +66,7 @@ check "completion loaded (compinit)" '(( $+functions[compdef] )) && echo yes'
 check "case-insensitive completion matcher" 'zstyle -s :completion: matcher-list m && [[ $m == *a-zA-Z* ]] && echo yes'
 if zsh_i '(( $+commands[starship] ))' >/dev/null; then
   prompt=$(zsh_i "cd '$SRC' && STARSHIP_SHELL=zsh starship prompt")
-  case $prompt in *❯*) pass "starship prompt renders (❯)" ;; *) fail "starship prompt has no ❯: $prompt" ;; esac
+  case $prompt in *"$os_symbol"*) pass "starship prompt uses starship.toml (OS symbol)" ;; *) fail "starship prompt has no OS symbol from starship.toml: $prompt" ;; esac
 else
   fail "starship not installed"
 fi

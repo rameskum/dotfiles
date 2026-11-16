@@ -27,15 +27,22 @@ eval "$("$BREW" shellenv)"
 brewfile=$(mktemp)
 trap 'rm -f "$brewfile"' EXIT
 cat >"$brewfile" <<'EOF'
-{{ range .packages.formulae -}}
-brew {{ . | quote }}
-{{ end -}}
 {{- /* On WSL the terminal and font live on the Windows side. */ -}}
-{{- if not .wsl -}}
-{{-   range (index .packages.casks .chezmoi.os | default (list)) }}
+{{- if not .wsl }}
+{{-   $terminal := index .packages.terminal .chezmoi.os }}
+{{-   range $terminal.taps }}
+tap {{ . | quote }}
+{{-   end }}
+{{-   range $terminal.formulae }}
+brew {{ . | quote }}
+{{-   end }}
+{{-   range $terminal.casks }}
 cask {{ . | quote }}
 {{-   end }}
-{{ end -}}
+{{- end }}
+{{- range .packages.formulae }}
+brew {{ . | quote }}
+{{- end }}
 EOF
 
 "$BREW" bundle --file="$brewfile" --no-upgrade

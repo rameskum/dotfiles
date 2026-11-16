@@ -43,10 +43,6 @@ jobs:
       fail-fast: false
       matrix:
         os: [ubuntu-latest, macos-latest, windows-latest]
-    env:
-      # Also write the PowerShell profile on macOS and Linux, so every runner
-      # tests both shells. Windows always writes it.
-      DOTFILES_POWERSHELL: "1"
     steps:
       - uses: actions/checkout@v4
 
@@ -79,15 +75,6 @@ jobs:
           export PATH="$brew_bin:$PATH"
           tests/verify-zsh.sh
 
-      - name: Check PowerShell profile (macOS, Linux)
-        if: runner.os != 'Windows'
-        shell: bash
-        run: |
-          export HOME="$TEST_HOME"
-          brew_bin="$(brew --prefix)/bin"
-          export PATH="$brew_bin:$PATH"
-          pwsh -NoProfile -File tests/verify-pwsh.ps1
-
       - name: Check the Nerd Font is installed (macOS, Linux)
         if: runner.os != 'Windows'
         shell: bash
@@ -97,12 +84,18 @@ jobs:
           echo "$fonts"
           test -n "$fonts"
 
-      - name: Check WezTerm loads the config and finds the font (macOS)
-        if: runner.os == 'macOS'
+      # On Linux the font sits in the applied home's ~/.local/share/fonts,
+      # which fontconfig only sees with that HOME.
+      - name: Check WezTerm loads the config and finds the font (macOS, Linux)
+        if: runner.os != 'Windows'
         shell: bash
         run: |
           brew_bin="$(brew --prefix)/bin"
           export PATH="$brew_bin:$PATH"
+          if [ "$RUNNER_OS" = Linux ]; then
+            export HOME="$TEST_HOME"
+            fc-list | grep 'JetBrainsMono Nerd Font'
+          fi
           wezterm --config-file "$TEST_HOME/.wezterm.lua" ls-fonts | tee "$RUNNER_TEMP/ls-fonts.txt"
           grep -q 'JetBrainsMono Nerd Font' "$RUNNER_TEMP/ls-fonts.txt"
 

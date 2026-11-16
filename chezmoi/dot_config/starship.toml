@@ -1,7 +1,7 @@
 # Shared prompt for zsh and PowerShell, on every OS. Needs a Nerd Font.
 # Glyphs are written as \u escapes so no editor can mangle them:
-#    ubuntu   apple   windows   linux
-#    git branch   python   node
+#   \uf31b ubuntu  \uf179 apple  \uf17a windows  \uf17c linux
+#   \ue0a0 git branch  \ue73c python  \ue718 node
 
 format = """\
 $os\
@@ -19,30 +19,30 @@ disabled = false
 style = "bold #e95420"
 
 [os.symbols]
-Ubuntu = " "
-Macos = " "
-Windows = " "
-Linux = " "
+Ubuntu = "\uf31b "
+Macos = "\uf179 "
+Windows = "\uf17a "
+Linux = "\uf17c "
 
 [directory]
 style = "bold #89b4fa"
 
 [git_branch]
-symbol = " "
+symbol = "\ue0a0 "
 style = "bold #cba6f7"
 
 [git_status]
 style = "bold #f38ba8"
 
 [python]
-symbol = " "
+symbol = "\ue73c "
 
 [nodejs]
-symbol = " "
+symbol = "\ue718 "
 
 [cmd_duration]
 format = "took [$duration]($style) "
 
 [character]
-success_symbol = "[❯](bold #a6e3a1)"
-error_symbol = "[❯](bold #f38ba8)"
+success_symbol = "[\u276f](bold #a6e3a1)"
+error_symbol = "[\u276f](bold #f38ba8)"

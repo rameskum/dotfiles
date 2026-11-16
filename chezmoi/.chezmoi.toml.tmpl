@@ -1,10 +1,8 @@
 {{- /*
   Written once by `chezmoi init`. No prompts, so `chezmoi init --apply` works
-  unattended (containers, CI). The three switches come from the environment:
+  unattended (containers, CI). The switch comes from the environment:
 
     DOTFILES_SKIP_INSTALL=1   do not run the package install script
-    DOTFILES_POWERSHELL=1     also write the PowerShell profile on macOS/Linux
-                              (always written on Windows)
 
   WSL is detected from the kernel string.
 */ -}}
@@ -14,5 +12,4 @@
 {{- end -}}
 [data]
     installPackages = {{ eq (env "DOTFILES_SKIP_INSTALL") "" }}
-    powershell = {{ or (eq .chezmoi.os "windows") (ne (env "DOTFILES_POWERSHELL") "") }}
     wsl = {{ $wsl }}

@@ -1,12 +1,12 @@
 #!/usr/bin/env python3
-"""Drives a real interactive shell in a pseudo-terminal, like a person at a keyboard.
+"""Drives a real interactive zsh in a pseudo-terminal, like a person at a keyboard.
 
-    tests/shell-pty.py zsh     (macOS, Linux, WSL: ~/.zshrc)
-    tests/shell-pty.py pwsh    (PowerShell 7 on macOS/Linux with the profile)
+    tests/shell-pty.py <os-symbol>
 
-Checks what only a terminal can show: the startup file loads without errors,
-the starship prompt is drawn, Tab completes a path, and a command typed
-earlier is offered back as an autosuggestion. Run by the verify scripts.
+Checks what only a terminal can show: ~/.zshrc loads without errors, the
+starship prompt from starship.toml (with this OS's <os-symbol>) is drawn, Tab
+completes a path, and a command typed earlier is offered back as an
+autosuggestion. Run by tests/verify-zsh.sh.
 """
 import fcntl
 import os
@@ -35,22 +35,18 @@ def read_for(fd, seconds):
         if not chunk:
             return out.decode("utf-8", "replace")
         out += chunk
-        # PowerShell asks the terminal where the cursor is and waits for the
-        # answer; a real terminal replies, so do the same.
-        for _ in range(chunk.count(b"\x1b[6n")):
-            os.write(fd, b"\x1b[1;1R")
 
 
 def main():
-    shell = sys.argv[1] if len(sys.argv) > 1 else "zsh"
-    argv = {"zsh": ["zsh", "-i"], "pwsh": ["pwsh", "-NoLogo"]}[shell]
+    os_symbol = sys.argv[1]
+    argv = ["zsh", "-i"]
     env = dict(os.environ, TERM="xterm-256color", LANG="C.UTF-8")
     pid, fd = pty.fork()
     if pid == 0:
         os.chdir(os.path.expanduser("~"))
         os.execvpe(argv[0], argv, env)
 
-    # A real terminal has a size; PowerShell misbehaves without one.
+    # A real terminal has a size.
     fcntl.ioctl(fd, termios.TIOCSWINSZ, struct.pack("HHHH", 40, 120, 0, 0))
     failures = 0
 
@@ -63,10 +59,10 @@ def main():
                 print("     " + detail.replace("\n", "\n     "), file=sys.stderr)
 
     startup = ANSI.sub("", read_for(fd, 4.0))
-    check("❯" in startup, "starship prompt is drawn at startup", repr(startup))
+    check(os_symbol in startup, "starship prompt is drawn at startup", repr(startup))
     check(
         not re.search(r"(error|can't|not found|no such)", startup, re.I),
-        f"{shell} starts with no errors",
+        "zsh starts with no errors",
         startup,
     )
 

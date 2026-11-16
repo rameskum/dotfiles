@@ -17,13 +17,13 @@ It goes away once chezmoi has replaced it.
 | Completion | zsh `compinit`, case-insensitive menu | same | same | PSReadLine `MenuComplete` |
 | Highlighting | zsh-syntax-highlighting | same | same | PSReadLine (built in) |
 | fzf, zoxide | `Ctrl+R`, `Ctrl+T`, `z` | same | same | same |
-| Terminal | WezTerm, `~/.wezterm.lua` (one file, all OSes) | by hand (see below) | the Windows side | WezTerm |
+| Terminal | WezTerm, `~/.wezterm.lua` (one file, all OSes) | same | the Windows side | same |
 | Font | JetBrainsMono Nerd Font | same | the Windows side | same |
 | Agent skills | `~/.agents/.skill-lock.json` and my own skills | same | same | same |
 
 Everything is installed by one `run_once_` script per OS, and nothing else is installed:
 
-- macOS, Linux, WSL2: Homebrew formulae `starship`, `fzf`, `zoxide`, `zsh-autosuggestions`, `zsh-syntax-highlighting`, `zsh-history-substring-search`; casks `wezterm` (macOS only) and `font-jetbrains-mono-nerd-font` (not on WSL).
+- macOS, Linux, WSL2: Homebrew formulae `starship`, `fzf`, `zoxide`, `zsh-autosuggestions`, `zsh-syntax-highlighting`, `zsh-history-substring-search`; WezTerm (cask on macOS, formula from the `wezterm/wezterm-linuxbrew` tap on Linux) and the cask `font-jetbrains-mono-nerd-font` (neither on WSL).
 - Windows: WinGet packages `wez.wezterm`, `DEVCOM.JetBrainsMonoNerdFont`, `Starship.Starship`, `junegunn.fzf`, `ajeetdsouza.zoxide`.
 
 The lists live in `chezmoi/.chezmoidata/packages.yaml`.
@@ -62,8 +62,8 @@ zsh is already the login shell.
    ```
 
 4. Make zsh the login shell: `chsh -s "$(command -v zsh)"`, then log out and in.
-5. WezTerm has no Homebrew build for Linux, so install it by hand: <https://wezterm.org/install/linux.html>.
-   The config in `~/.wezterm.lua` is picked up as soon as it runs.
+
+It installs WezTerm from its own Linuxbrew tap (`wezterm/wezterm-linuxbrew`) and reads `~/.wezterm.lua`.
 
 ### Windows (native, PowerShell 7)
 
@@ -140,9 +140,8 @@ Set these in the environment of the first `chezmoi init`:
 | Variable | Effect |
 | --- | --- |
 | `DOTFILES_SKIP_INSTALL=1` | Do not run the package install script. |
-| `DOTFILES_POWERSHELL=1` | Also write the PowerShell profile on macOS and Linux (`~/.config/powershell/profile.ps1`). Windows always gets it. |
 
-They are stored in `~/.config/chezmoi/chezmoi.toml`; re-run `chezmoi init` to change them.
+It is stored in `~/.config/chezmoi/chezmoi.toml`; re-run `chezmoi init` to change it.
 
 ### Try a change without touching your home
 
@@ -154,7 +153,6 @@ HOME=$home DOTFILES_SKIP_INSTALL=1 chezmoi init --apply --no-tty --source "$PWD"
 ## What stays manual
 
 - The prerequisites above: Homebrew (and the apt packages on Linux), `git`, PowerShell 7 and chezmoi on Windows, `chsh` to zsh.
-- WezTerm on Linux.
 - Setting the terminal font in anything other than WezTerm (VS Code, Windows Terminal, GNOME Terminal): choose "JetBrainsMono Nerd Font".
 - Secrets. Nothing secret is in this repo and nothing is rendered into a file:
   - SSH keys live in the Bitwarden desktop SSH agent. Install Bitwarden by hand and turn the agent on. On Windows, disable the "OpenSSH Authentication Agent" service so Bitwarden can take over the pipe.
@@ -167,17 +165,17 @@ HOME=$home DOTFILES_SKIP_INSTALL=1 chezmoi init --apply --no-tty --source "$PWD"
 CI (`.github/workflows/chezmoi.yml`) runs `chezmoi init --apply` from the checkout on `ubuntu-latest`, `macos-latest` and `windows-latest`, then checks:
 
 - the rendered `.wezterm.lua` and `starship.toml` are byte-identical to the source, so the terminal and prompt are the same on every OS;
-- every alias is defined in zsh and in PowerShell;
-- the starship prompt renders and is hooked into both shells;
+- every alias is defined in zsh (macOS, Linux) and in PowerShell (Windows);
+- the starship prompt renders with this OS's logo from `starship.toml` and is hooked into both shells;
 - zsh has completion, autosuggestions, syntax highlighting, history search, fzf and zoxide loaded;
-- a real interactive session in a pseudo-terminal (`tests/shell-pty.py`) draws the prompt, completes a path with Tab and offers an earlier command as a suggestion, in zsh and in PowerShell (macOS and Linux; on Windows this is the manual check below);
-- the Nerd Font is installed (macOS, Linux).
+- a real interactive zsh session in a pseudo-terminal (`tests/shell-pty.py`) draws the prompt, completes a path with Tab and offers an earlier command as a suggestion (macOS, Linux; for PowerShell on Windows this is the manual check below);
+- the Nerd Font is installed and WezTerm loads the config and finds the font (macOS, Linux).
 
 To run the same checks on a machine where you applied the setup:
 
 ```sh
 tests/verify-zsh.sh                              # macOS, Linux, WSL
-pwsh -NoProfile -File tests/verify-pwsh.ps1      # any OS with the PowerShell profile
+pwsh -NoProfile -File tests/verify-pwsh.ps1      # Windows
 ```
 
 Manual check on Windows (CI cannot drive a console there): open WezTerm, type a command, start typing it again and see the grey suggestion, press Tab and see the completion menu.
@@ -194,7 +192,7 @@ or just look at the prompt: the OS logo, the branch icon and the `❯` must show
 
 - `.chezmoiroot` - points chezmoi at the `chezmoi/` directory.
 - `chezmoi/` - the chezmoi source state:
-  - `dot_zshrc.tmpl`, `Documents/PowerShell/profile.ps1.tmpl`, `dot_config/powershell/profile.ps1.tmpl`, `.chezmoitemplates/profile.ps1` - the shell configs.
+  - `dot_zshrc.tmpl`, `Documents/PowerShell/profile.ps1.tmpl` - the shell configs.
   - `dot_config/starship.toml`, `dot_wezterm.lua` - the shared prompt and terminal config.
   - `dot_agents/` - the skill lockfile and my own skills.
   - `.chezmoidata/` - aliases, environment variables and package lists.
