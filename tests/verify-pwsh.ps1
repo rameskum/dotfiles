@@ -22,6 +22,11 @@ Pass "profile present at $profilePath"
 if (Same "$src/chezmoi/dot_wezterm.lua" (Join-Path $HOME '.wezterm.lua')) { Pass '.wezterm.lua matches source' } else { Fail '.wezterm.lua differs from source' }
 if (Same "$src/chezmoi/dot_config/starship.toml" (Join-Path $HOME '.config/starship.toml')) { Pass 'starship.toml matches source' } else { Fail 'starship.toml differs from source' }
 if (Test-Path (Join-Path $HOME '.agents/.skill-lock.json')) { Pass 'skill lockfile present' } else { Fail 'skill lockfile missing' }
+foreach ($skill in Get-ChildItem "$src/chezmoi/dot_agents/skills/*/SKILL.md") {
+    $name = $skill.Directory.Name
+    $installed = Join-Path $HOME ".agents/skills/$name/SKILL.md"
+    if ((Test-Path $installed) -and (Same $skill.FullName $installed)) { Pass "own skill $name installed" } else { Fail "own skill $name missing or differs from source" }
+}
 
 # Aliases that apply here, and the command each one needs.
 $aliases = Get-Content -Raw "$src/tests/aliases.tmpl" | chezmoi --source $src execute-template |

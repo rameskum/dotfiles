@@ -39,6 +39,11 @@ cmp -s "$SRC/chezmoi/dot_wezterm.lua" "$HOME/.wezterm.lua" \
 cmp -s "$SRC/chezmoi/dot_config/starship.toml" "$HOME/.config/starship.toml" \
   && pass "starship.toml matches source" || fail "starship.toml differs from source"
 [ -f "$HOME/.agents/.skill-lock.json" ] && pass "skill lockfile present" || fail "skill lockfile missing"
+for skill in "$SRC"/chezmoi/dot_agents/skills/*/SKILL.md; do
+  name=$(basename "$(dirname "$skill")")
+  cmp -s "$skill" "$HOME/.agents/skills/$name/SKILL.md" \
+    && pass "own skill $name installed" || fail "own skill $name missing or differs from source"
+done
 
 # A real interactive session in a pseudo-terminal: clean startup, the prompt is
 # drawn, Tab completes, an earlier command comes back as a suggestion.
