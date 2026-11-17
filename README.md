@@ -120,6 +120,8 @@ After editing the list: `chezmoi apply`.
 
 - `~/.agents/.skill-lock.json` is tracked: after installing or updating skills, run `chezmoi re-add ~/.agents/.skill-lock.json`.
 - My own skills go in `chezmoi/dot_agents/skills/<name>/SKILL.md` in this repo (`chezmoi cd`), and `chezmoi apply` copies them to `~/.agents/skills/`.
+  On the legacy Nix setup, `~/.agents` links to `home/.agents`, so each own skill also gets a symlink `home/.agents/skills/<name>` pointing at its `chezmoi/dot_agents/skills/<name>` directory.
+- My own skills: `goodnight` (run `/goodnight [focus]` from a Firstmate home before bed for an overnight review, issue and fix run across my 3 most recently pushed repos, with a Lavish morning report).
 - Third-party skills are not stored here. The lockfile records which ones I have, and the skills tool reinstalls them.
 
 ### Changing what gets installed
