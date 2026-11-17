@@ -1,0 +1,33 @@
+# The one alias list. Rendered into ~/.zshrc (zsh) and the PowerShell profile
+# (functions that forward their arguments), see .chezmoitemplates/aliases.json.
+#
+#   name      what you type
+#   command   what it runs; plain words only, no quotes or shell syntax, so the
+#             same string is valid in zsh and PowerShell
+#   requires  optional: only define the alias when this command is installed
+#   os        optional: only on these chezmoi OSes (linux, darwin, windows)
+aliases:
+  - name: c
+    command: clear
+  - name: ".."
+    command: cd ..
+  - name: cat
+    command: bat --paging=never
+    requires: bat
+  - name: add
+    command: git add .
+  - name: push
+    command: git push
+  - name: pull
+    command: git pull
+  - name: m
+    command: git switch main
+  - name: cc
+    command: claude --dangerously-skip-permissions
+  - name: co
+    command: codex --full-auto
+  # macOS has `open` and PowerShell has `ii`; Linux needs one.
+  - name: open
+    command: xdg-open
+    requires: xdg-open
+    os: [linux]

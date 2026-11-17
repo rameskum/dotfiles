@@ -1,0 +1,31 @@
+{{- /*
+  Windows: install the terminal tooling with WinGet.
+  The list is chezmoi/.chezmoidata/packages.yaml. Runs once per content hash;
+  to re-run after editing the list: chezmoi state delete-bucket --bucket=scriptState
+  Keep this file ASCII: Windows PowerShell 5.1 reads BOM-less files as ANSI.
+*/ -}}
+{{- if .installPackages -}}
+$ErrorActionPreference = 'Stop'
+
+if (-not (Get-Command winget -ErrorAction SilentlyContinue)) {
+    throw 'winget not found. Install "App Installer" from the Microsoft Store, then run: chezmoi apply'
+}
+
+$packages = @(
+{{- range .packages.winget }}
+    {{ . | squote }}
+{{- end }}
+)
+
+foreach ($id in $packages) {
+    winget list --id $id --exact --accept-source-agreements | Out-Null
+    if ($LASTEXITCODE -eq 0) {
+        Write-Host "$id already installed"
+        continue
+    }
+    winget install --id $id --exact --silent --accept-package-agreements --accept-source-agreements
+    if ($LASTEXITCODE -ne 0) {
+        throw "winget install $id failed with exit code $LASTEXITCODE"
+    }
+}
+{{- end }}

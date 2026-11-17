@@ -1,0 +1,78 @@
+{{- /*
+  macOS, Linux and WSL: install the terminal tooling with Homebrew.
+  The list is chezmoi/.chezmoidata/packages.yaml. Runs once per content hash;
+  to re-run after editing the list: chezmoi state delete-bucket --bucket=scriptState
+*/ -}}
+{{- if .installPackages -}}
+#!/bin/sh
+set -eu
+
+BREW=
+if command -v brew >/dev/null 2>&1; then
+  BREW=$(command -v brew)
+else
+  for candidate in /opt/homebrew/bin/brew /usr/local/bin/brew /home/linuxbrew/.linuxbrew/bin/brew; do
+    if [ -x "$candidate" ]; then
+      BREW=$candidate
+      break
+    fi
+  done
+fi
+if [ -z "$BREW" ]; then
+  echo "Homebrew is not installed. Install it first (see README.md), then run: chezmoi apply" >&2
+  exit 1
+fi
+eval "$("$BREW" shellenv)"
+{{- if and (eq .chezmoi.os "linux") (not .wsl) }}
+
+# The Linuxbrew WezTerm is an AppImage, which needs FUSE 2 (libfuse.so.2).
+# Ubuntu 24.04+ names the package libfuse2t64, older releases libfuse2.
+if command -v apt-get >/dev/null 2>&1 &&
+  ! dpkg-query -W -f='${Status}' libfuse2t64 2>/dev/null | grep -q 'ok installed' &&
+  ! dpkg-query -W -f='${Status}' libfuse2 2>/dev/null | grep -q 'ok installed'; then
+  fuse_pkg=libfuse2
+  if apt-cache show libfuse2t64 >/dev/null 2>&1; then
+    fuse_pkg=libfuse2t64
+  fi
+  if [ "$(id -u)" -eq 0 ]; then
+    apt-get install -y "$fuse_pkg"
+  elif command -v sudo >/dev/null 2>&1; then
+    sudo apt-get install -y "$fuse_pkg"
+  else
+    echo "warning: sudo is not available, so $fuse_pkg was not installed." >&2
+    echo "WezTerm needs it to start: sudo apt-get install $fuse_pkg" >&2
+  fi
+fi
+{{- end }}
+{{- if not .wsl }}
+{{-   range (index .packages.terminal .chezmoi.os).taps }}
+
+# Homebrew refuses to load formulae from a third-party tap until it is trusted.
+"$BREW" tap {{ . | quote }}
+"$BREW" trust --tap {{ . | quote }}
+{{-   end }}
+{{- end }}
+
+brewfile=$(mktemp)
+trap 'rm -f "$brewfile"' EXIT
+cat >"$brewfile" <<'EOF'
+{{- /* On WSL the terminal and font live on the Windows side. */ -}}
+{{- if not .wsl }}
+{{-   $terminal := index .packages.terminal .chezmoi.os }}
+{{-   range $terminal.taps }}
+tap {{ . | quote }}
+{{-   end }}
+{{-   range $terminal.formulae }}
+brew {{ . | quote }}
+{{-   end }}
+{{-   range $terminal.casks }}
+cask {{ . | quote }}
+{{-   end }}
+{{- end }}
+{{- range .packages.formulae }}
+brew {{ . | quote }}
+{{- end }}
+EOF
+
+"$BREW" bundle --file="$brewfile" --no-upgrade
+{{- end }}

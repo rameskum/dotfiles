@@ -1,0 +1,155 @@
+name: chezmoi
+
+# Proves `chezmoi init --apply` on a clean Linux, macOS and Windows machine:
+# the same prompt, aliases and terminal config, and working completion and
+# suggestions. The Nix/home-manager setup is not touched.
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+env:
+  CHEZMOI_VERSION: v2.74.1
+
+jobs:
+  static:
+    name: static checks
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: No secret values in the repo
+        run: tests/no-secrets.sh
+      - name: Install chezmoi
+        run: |
+          sh -c "$(curl -fsLS get.chezmoi.io)" -- -b "$RUNNER_TEMP/bin" -t "$CHEZMOI_VERSION"
+          echo "$RUNNER_TEMP/bin" >> "$GITHUB_PATH"
+      - name: shellcheck the test scripts and the rendered install script
+        run: |
+          shellcheck tests/*.sh
+          chezmoi --source "$GITHUB_WORKSPACE" execute-template \
+            --override-data '{"installPackages": true, "wsl": false}' \
+            < chezmoi/.chezmoiscripts/run_once_before_install-packages.sh.tmpl \
+            > "$RUNNER_TEMP/install-packages.sh"
+          shellcheck "$RUNNER_TEMP/install-packages.sh"
+
+  apply:
+    name: apply (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+    steps:
+      - uses: actions/checkout@v4
+
+      # ---- Linux and macOS: applied into a fresh temporary home ----------
+      - name: Install chezmoi (macOS, Linux)
+        if: runner.os != 'Windows'
+        shell: bash
+        run: |
+          sh -c "$(curl -fsLS get.chezmoi.io)" -- -b "$RUNNER_TEMP/bin" -t "$CHEZMOI_VERSION"
+          echo "$RUNNER_TEMP/bin" >> "$GITHUB_PATH"
+
+      - name: Install zsh (Linux)
+        if: runner.os == 'Linux'
+        run: sudo apt-get install -y zsh
+
+      - name: chezmoi init --apply (macOS, Linux)
+        if: runner.os != 'Windows'
+        shell: bash
+        run: |
+          mkdir -p "$RUNNER_TEMP/home"
+          echo "TEST_HOME=$RUNNER_TEMP/home" >> "$GITHUB_ENV"
+          # macOS only finds fonts in the real user's ~/Library/Fonts, so the
+          # font cask goes there rather than into the temporary home.
+          if [ "$RUNNER_OS" = macOS ]; then
+            export HOMEBREW_CASK_OPTS="--fontdir=$HOME/Library/Fonts"
+          fi
+          HOME="$RUNNER_TEMP/home" chezmoi init --apply --no-tty --source "$GITHUB_WORKSPACE"
+          # Later steps use what Homebrew installed. Linuxbrew is not on PATH.
+          brew=$(command -v brew || echo /home/linuxbrew/.linuxbrew/bin/brew)
+          echo "$("$brew" --prefix)/bin" >> "$GITHUB_PATH"
+
+      - name: Check zsh (macOS, Linux)
+        if: runner.os != 'Windows'
+        shell: bash
+        run: |
+          export HOME="$TEST_HOME"
+          tests/verify-zsh.sh
+
+      - name: Check the Nerd Font is installed (macOS, Linux)
+        if: runner.os != 'Windows'
+        shell: bash
+        run: |
+          fonts=$(find "$TEST_HOME" "$HOME/Library/Fonts" "$HOME/.local/share/fonts" /usr/share/fonts \
+            -iname '*JetBrainsMono*Nerd*' 2>/dev/null | head -n 3 || true)
+          echo "$fonts"
+          test -n "$fonts"
+
+      # On Linux the font sits in the applied home's ~/.local/share/fonts,
+      # which fontconfig only sees with that HOME.
+      - name: Check WezTerm loads the config and finds the font (macOS, Linux)
+        if: runner.os != 'Windows'
+        shell: bash
+        run: |
+          if [ "$RUNNER_OS" = Linux ]; then
+            export HOME="$TEST_HOME"
+            fc-list | grep 'JetBrainsMono Nerd Font'
+          fi
+          # The Linux WezTerm is an AppImage; extract-and-run avoids needing FUSE.
+          APPIMAGE_EXTRACT_AND_RUN=1 wezterm --config-file "$TEST_HOME/.wezterm.lua" ls-fonts | tee "$RUNNER_TEMP/ls-fonts.txt"
+          grep -q 'JetBrainsMono Nerd Font' "$RUNNER_TEMP/ls-fonts.txt"
+
+      # ---- Windows: applied into the runner's own (throwaway) profile ----
+      - name: Install chezmoi (Windows)
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          $v = $env:CHEZMOI_VERSION.TrimStart('v')
+          $zip = Join-Path $env:RUNNER_TEMP 'chezmoi.zip'
+          $dir = Join-Path $env:RUNNER_TEMP 'chezmoi-bin'
+          Invoke-WebRequest "https://github.com/twpayne/chezmoi/releases/download/v$v/chezmoi_${v}_windows_amd64.zip" -OutFile $zip
+          Expand-Archive $zip -DestinationPath $dir
+          $dir | Out-File -Append -Encoding utf8 $env:GITHUB_PATH
+
+      # The hosted Windows image does not always ship WinGet. When it is
+      # missing, the install script is skipped and Chocolatey provides the
+      # same three CLIs, so the prompt and shell checks still run.
+      - name: Check WinGet (Windows)
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          if (Get-Command winget -ErrorAction SilentlyContinue) {
+            winget --version
+          } else {
+            Write-Host 'winget not available on this runner: using Chocolatey for the CLIs'
+            'DOTFILES_SKIP_INSTALL=1' | Out-File -Append -Encoding utf8 $env:GITHUB_ENV
+            choco install starship fzf zoxide -y --no-progress
+          }
+
+      - name: chezmoi init --apply (Windows)
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: chezmoi init --apply --no-tty --source $env:GITHUB_WORKSPACE
+
+      - name: Check PowerShell profile (Windows)
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          # Pick up the PATH entries WinGet just added, keeping this step's own
+          # (chezmoi is on it).
+          $env:Path = [Environment]::GetEnvironmentVariable('Path', 'Machine') + ';' + [Environment]::GetEnvironmentVariable('Path', 'User') + ';' + $env:Path
+          pwsh -NoProfile -File tests/verify-pwsh.ps1
+
+      # Windows fonts and WezTerm rendering are a documented manual check
+      # (README); this only reports what the install step left behind.
+      - name: Report Nerd Font and WezTerm (Windows)
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          Get-ChildItem 'C:\Windows\Fonts', "$env:LOCALAPPDATA\Microsoft\Windows\Fonts" -Filter '*JetBrainsMono*' -ErrorAction SilentlyContinue | Select-Object -First 3 FullName
+          Get-ChildItem 'C:\Program Files\WezTerm' -ErrorAction SilentlyContinue | Select-Object -First 3 FullName

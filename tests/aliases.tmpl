@@ -1,0 +1,4 @@
+{{- /* name<TAB>required command, for every alias that applies on this OS. Used by the verify scripts. */ -}}
+{{ range (includeTemplate "aliases.json" . | fromJson) -}}
+{{ .name }}	{{ get . "requires" }}
+{{ end -}}

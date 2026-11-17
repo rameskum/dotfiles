@@ -1,0 +1,34 @@
+# Everything the install scripts put on a machine. Nothing else is installed.
+#
+# macOS, Linux and WSL use Homebrew; Windows uses WinGet.
+# `terminal` is WezTerm and the Nerd Font, per OS. It is skipped on WSL, where
+# the terminal and font live on the Windows side. On Linux WezTerm comes from
+# its own Linuxbrew tap (https://wezterm.org/install/linux.html).
+packages:
+  formulae:
+    - starship
+    - fzf
+    - zoxide
+    - zsh-autosuggestions
+    - zsh-syntax-highlighting
+    - zsh-history-substring-search
+  terminal:
+    darwin:
+      taps: []
+      formulae: []
+      casks:
+        - wezterm
+        - font-jetbrains-mono-nerd-font
+    linux:
+      taps:
+        - wezterm/wezterm-linuxbrew
+      formulae:
+        - wezterm/wezterm-linuxbrew/wezterm
+      casks:
+        - font-jetbrains-mono-nerd-font
+  winget:
+    - wez.wezterm
+    - DEVCOM.JetBrainsMonoNerdFont
+    - Starship.Starship
+    - junegunn.fzf
+    - ajeetdsouza.zoxide

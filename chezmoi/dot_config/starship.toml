@@ -1,0 +1,48 @@
+# Shared prompt for zsh and PowerShell, on every OS. Needs a Nerd Font.
+# Glyphs are written as \u escapes so no editor can mangle them:
+#   \uf31b ubuntu  \uf179 apple  \uf17a windows  \uf17c linux
+#   \ue0a0 git branch  \ue73c python  \ue718 node
+
+format = """\
+$os\
+$directory\
+$git_branch\
+$git_status\
+$python\
+$nodejs\
+$cmd_duration\
+$line_break\
+$character"""
+
+[os]
+disabled = false
+style = "bold #e95420"
+
+[os.symbols]
+Ubuntu = "\uf31b "
+Macos = "\uf179 "
+Windows = "\uf17a "
+Linux = "\uf17c "
+
+[directory]
+style = "bold #89b4fa"
+
+[git_branch]
+symbol = "\ue0a0 "
+style = "bold #cba6f7"
+
+[git_status]
+style = "bold #f38ba8"
+
+[python]
+symbol = "\ue73c "
+
+[nodejs]
+symbol = "\ue718 "
+
+[cmd_duration]
+format = "took [$duration]($style) "
+
+[character]
+success_symbol = "[\u276f](bold #a6e3a1)"
+error_symbol = "[\u276f](bold #f38ba8)"
