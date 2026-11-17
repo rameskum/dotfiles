@@ -37,7 +37,7 @@ It only ever narrows Firstmate's authority; nothing here widens it.
 ## 3. Pick the repos
 
 1. List the owner's repos most recently pushed first with gh-axi, for example `gh-axi api 'user/repos?affiliation=owner&sort=pushed&direction=desc&per_page=30'`.
-2. Drop archived repos, forks, and the repository this Firstmate home itself runs from.
+2. Drop archived repos, forks, and the repository this Firstmate home itself runs from: this home is a user, not a maintainer, of that repository, and its contract forbids issues, PRs or pushes there on its own authority, so an unattended overnight run must never target it.
 3. Take the first 3.
 4. For each one not already a project in `data/projects.md`, load `project-management` and add it with that skill's resolved defaults (clone into `projects/`, register, initialize).
    The `/goodnight` invocation is the owner's consent to clone and register exactly these repos.
@@ -112,9 +112,11 @@ Until the deadline:
    behaviour-preserving and risk:low; its diff only touches docs, comments, tests, lint or typing fixes, dead
    code, or a refactor that leaves every test file unchanged; all checks are green; it is nothing destructive,
    security-sensitive or access-related (auth, secrets, keys, permissions, CI permissions, infrastructure
-   access, data deletion); and on homelab, none of its changed files matches a `paths` filter of a workflow
-   that deploys, converges or applies on push to main, read from the repo at merge time (a homelab merge that
-   touches a host redeploys it). Any doubt: leave the PR open for me.
+   access, data deletion); and on homelab, none of its changed files is a host file. A host file is any file
+   that triggers a workflow which deploys, converges or applies on push to main, read from the repo at merge
+   time: a `paths` filter matches the files it lists, no `paths` filter matches every file, and `paths-ignore`
+   matches every file it does not exclude (a homelab merge that touches a host redeploys it). Any doubt: leave
+   the PR open for me.
 4. Never more than 4 workers at once.
 
 At and after the deadline: dispatch nothing new and merge nothing. Workers already running finish to their
@@ -131,7 +133,7 @@ Do not wait for a reply.
 ## 8. Merge authority (do not widen)
 
 - The only PRs that may merge without the owner are goodnight fix PRs meeting every condition in rule 3 of the words, merged by the away session through `bin/fm-pr-merge.sh` before the deadline and before the owner returns.
-- Never merged by goodnight: behaviour-changing fixes, anything above risk:low, anything red or with an unreported required check, any homelab change touching host files, and anything destructive, irreversible, security-sensitive or access-related, whatever a label says.
+- Never merged by goodnight: behaviour-changing fixes, anything above risk:low, anything red or with an unreported required check, any homelab change touching a host file (any file that triggers a deploy, converge or apply workflow on push to main, as rule 3 of the words defines it), and anything destructive, irreversible, security-sensitive or access-related, whatever a label says.
 - Goodnight ships spawn with yolo off, so after the run no goodnight PR merges without the owner's explicit word.
 - Away mode's own limits stay in force: no red merges, no local-only landing, nothing from the never-set.
 
@@ -147,7 +149,7 @@ The owner's first ordinary message after a goodnight run is the return, whether 
    - a summary line: repos reviewed, issues filed, PRs merged, PRs waiting, failures;
    - issues filed, per repo: link, class, risk, and whether a fix was attempted;
    - PRs merged: full URL and the issue it closed;
-   - PRs waiting for the owner: full URL and why it did not merge (behaviour-changing, not low risk, red or pending checks, homelab host files, deadline, owner returned);
+   - PRs waiting for the owner: full URL and why it did not merge (behaviour-changing, not low risk, red or pending checks, homelab host file per rule 3 of the words, deadline, owner returned);
    - still running, held, failed, or skipped: what and why, with evidence.
    Open it with `lavish-axi`.
 5. Reply in chat with the Lavish link and a short outcome summary in `AGENTS.md` section 9 language, every PR as its full `https://` URL.
